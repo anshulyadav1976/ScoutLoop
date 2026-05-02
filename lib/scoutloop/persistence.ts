@@ -22,9 +22,11 @@ export async function saveEvaluationRun(evaluation: ScoutLoopEvaluation) {
   const sql = getSqlClient();
 
   if (!sql) {
+    console.warn("[ScoutLoop][Neon] run:skip no POSTGRES_URL/DATABASE_URL");
     return;
   }
 
+  console.log("[ScoutLoop][Neon] run:save:start", { id: evaluation.id });
   await sql`
     INSERT INTO "ScoutLoopRun" (
       "id",
@@ -43,15 +45,22 @@ export async function saveEvaluationRun(evaluation: ScoutLoopEvaluation) {
     ON CONFLICT ("id")
     DO UPDATE SET "evaluation" = EXCLUDED."evaluation"
   `;
+  console.log("[ScoutLoop][Neon] run:save:success", { id: evaluation.id });
 }
 
 export async function saveEvaluatorFeedback(feedback: EvaluatorFeedback) {
   const sql = getSqlClient();
 
   if (!sql) {
+    console.warn(
+      "[ScoutLoop][Neon] feedback:skip no POSTGRES_URL/DATABASE_URL"
+    );
     return;
   }
 
+  console.log("[ScoutLoop][Neon] feedback:save:start", {
+    evaluationId: feedback.evaluationId,
+  });
   await sql`
     INSERT INTO "ScoutLoopFeedback" (
       "evaluationId",
@@ -64,6 +73,9 @@ export async function saveEvaluatorFeedback(feedback: EvaluatorFeedback) {
       ${sql.json(feedback)}
     )
   `;
+  console.log("[ScoutLoop][Neon] feedback:save:success", {
+    evaluationId: feedback.evaluationId,
+  });
 }
 
 export async function saveMemoryLessons(
@@ -73,9 +85,16 @@ export async function saveMemoryLessons(
   const sql = getSqlClient();
 
   if (!(sql && lessons.length)) {
+    console.warn("[ScoutLoop][Neon] lessons:skip", {
+      hasSql: Boolean(sql),
+      count: lessons.length,
+    });
     return;
   }
 
+  console.log("[ScoutLoop][Neon] lessons:save:start", {
+    count: lessons.length,
+  });
   for (const lesson of lessons) {
     await sql`
       INSERT INTO "ScoutLoopLesson" (
@@ -96,6 +115,9 @@ export async function saveMemoryLessons(
       DO NOTHING
     `;
   }
+  console.log("[ScoutLoop][Neon] lessons:save:success", {
+    count: lessons.length,
+  });
 }
 
 export async function loadMemoryLessons(
@@ -104,9 +126,13 @@ export async function loadMemoryLessons(
   const sql = getSqlClient();
 
   if (!sql) {
+    console.warn(
+      "[ScoutLoop][Neon] lessons:load:skip no POSTGRES_URL/DATABASE_URL"
+    );
     return [];
   }
 
+  console.log("[ScoutLoop][Neon] lessons:load:start", { mode });
   const rows = await sql<
     {
       id: string;
@@ -122,6 +148,7 @@ export async function loadMemoryLessons(
     LIMIT 5
   `;
 
+  console.log("[ScoutLoop][Neon] lessons:load:success", { count: rows.length });
   return rows.map((row) => ({
     id: row.id,
     lesson: row.lesson,

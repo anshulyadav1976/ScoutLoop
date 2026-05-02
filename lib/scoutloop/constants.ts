@@ -1,8 +1,4 @@
-import type {
-  EvaluationMode,
-  ScoutLoopInput,
-  WorkflowEvent,
-} from "@/lib/scoutloop/types";
+import type { EvaluationMode, WorkflowEvent } from "@/lib/scoutloop/types";
 
 export const SCOUTLOOP_MAX_TEXT_FILE_BYTES = 100_000;
 
@@ -85,48 +81,4 @@ export const sharperQuestionExamples = [
   "What proprietary execution data improves the product over time?",
   "What workflow lock-in appears after 30 days?",
   "Which distribution channel reaches decision-makers before incumbents copy the feature?",
-];
-
-export const seedInputs: {
-  label: string;
-  input: ScoutLoopInput;
-}[] = [
-  {
-    label: "AI Agent Startup",
-    input: {
-      mode: "startup_judge",
-      url: "https://example.com",
-      pitchText:
-        "ScoutLoop is a due diligence agent for startup and hackathon judges. It gathers public evidence, scores companies, and learns from evaluator feedback to generate sharper founder questions over time.",
-      uploadedTexts: [],
-    },
-  },
-  {
-    label: "Hackathon Project",
-    input: {
-      mode: "hackathon_judge",
-      url: "https://example.com/demo",
-      pitchText:
-        "A Vercel-native judging assistant that uses v0, WDK, Bright Data, Mubit, and Neon to evaluate submissions, show progress, and improve after judge feedback.",
-      uploadedTexts: [],
-    },
-  },
-  {
-    label: "Sustainability SaaS",
-    input: {
-      mode: "startup_judge",
-      pitchText:
-        "A lightweight SaaS for mid-market manufacturers to track supplier emissions from uploaded procurement records and produce audit-ready summaries.",
-      uploadedTexts: [],
-    },
-  },
-  {
-    label: "Procurement AI Tool",
-    input: {
-      mode: "startup_judge",
-      pitchText:
-        "An AI copilot for procurement teams that reviews vendor contracts, flags renewal risk, and suggests negotiation questions using customer-specific spend history.",
-      uploadedTexts: [],
-    },
-  },
 ];

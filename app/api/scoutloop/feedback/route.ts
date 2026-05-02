@@ -4,6 +4,11 @@ import type { EvaluatorFeedback } from "@/lib/scoutloop/types";
 
 export async function POST(request: Request) {
   const feedback = (await request.json()) as EvaluatorFeedback;
+  console.log("[ScoutLoop][API] feedback", {
+    evaluationId: feedback.evaluationId,
+    quickFeedback: feedback.quickFeedback,
+    hasCustomFeedback: Boolean(feedback.customFeedback),
+  });
   const lessons = await recordEvaluatorFeedback(feedback);
 
   return NextResponse.json({

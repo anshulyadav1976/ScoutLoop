@@ -138,11 +138,37 @@ async function generateWithModel({
 export async function runScoutLoopEvaluation(
   rawInput: ScoutLoopInput
 ): Promise<ScoutLoopEvaluation> {
+  console.log("[ScoutLoop] evaluation:start", {
+    mode: rawInput.mode,
+    hasUrl: Boolean(rawInput.url),
+    pitchChars: rawInput.pitchText?.length ?? 0,
+    uploadedFiles: rawInput.uploadedTexts?.length ?? 0,
+    useWdk: process.env.SCOUTLOOP_USE_WDK,
+    useBrightData: process.env.SCOUTLOOP_USE_BRIGHT_DATA,
+    useMubit: process.env.SCOUTLOOP_USE_MUBIT,
+  });
   const input = normalizeScoutLoopInput(rawInput);
+  console.log("[ScoutLoop] input:normalized", {
+    projectName: input.projectName,
+    mergedContextChars: input.mergedContext.length,
+  });
   const evidence = await gatherStartupEvidence(input);
+  console.log("[ScoutLoop] evidence:complete", {
+    evidenceCards: evidence.evidenceCards.length,
+    searchResults: evidence.searchResults.length,
+    competitorResults: evidence.competitorResults.length,
+    marketResults: evidence.marketResults.length,
+    warnings: evidence.warnings,
+  });
 
   try {
+    console.log("[ScoutLoop] v0:generate:start");
     const { output, lessons } = await generateWithModel({ input, evidence });
+    console.log("[ScoutLoop] v0:generate:success", {
+      scorecardItems: output.scorecard.length,
+      evidenceCards: output.evidenceCards.length,
+      lessonsApplied: lessons.length,
+    });
     const evaluation: ScoutLoopEvaluation = {
       ...output,
       id: crypto.randomUUID(),
@@ -166,10 +192,16 @@ export async function runScoutLoopEvaluation(
       warnings: evaluation.warnings,
     });
     await saveEvaluationRun(evaluation).catch(() => undefined);
+    console.log("[ScoutLoop] evaluation:complete", {
+      id: evaluation.id,
+      overallScore: evaluation.overallScore,
+      confidence: evaluation.overallConfidence,
+    });
 
     return evaluation;
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
+    console.error("[ScoutLoop] v0:generate:failed", message);
     const lessons = await recallLessons({
       mode: input.mode,
       projectName: input.projectName,
@@ -186,6 +218,11 @@ export async function runScoutLoopEvaluation(
     });
     evaluation.workflowEvents = completeWorkflowEvents(evaluation.warnings);
     await saveEvaluationRun(evaluation).catch(() => undefined);
+    console.log("[ScoutLoop] evaluation:fallback", {
+      id: evaluation.id,
+      reason: message,
+      overallScore: evaluation.overallScore,
+    });
     return evaluation;
   }
 }

@@ -15,7 +15,7 @@ export function createDemoEvidence(input: NormalizedScoutLoopInput) {
       title: "Provided project URL",
       url: input.url,
       snippet:
-        "The URL was provided by the evaluator. Live public evidence may be enriched when Bright Data is configured.",
+        "The URL was provided by the evaluator. ScoutLoop could not verify page content unless Bright Data scraping succeeds.",
       sourceType: "homepage",
       confidence: "medium",
     });
@@ -90,20 +90,19 @@ export function createFallbackEvaluation({
     startupName: input.projectName,
     url: input.url,
     summary:
-      "ScoutLoop produced a conservative fallback evaluation from provided text and available evidence. Treat public-market and traction claims as hypotheses until verified.",
-    problem:
-      "The provided context suggests a workflow pain around evaluating early-stage products quickly with better evidence, scoring discipline, and reusable evaluator judgment.",
+      "ScoutLoop could not complete live structured research for this run. This fallback is limited to provided text and explicitly marks missing public evidence.",
+    problem: input.pitchText
+      ? "Problem statement inferred only from the provided pitch text. Public validation was not verified in this fallback."
+      : "Insufficient evidence. Add pitch text, uploaded notes, or configure Bright Data scraping to evaluate the problem.",
     targetCustomer:
-      input.mode === "hackathon_judge"
-        ? "Hackathon judges, sponsor reviewers, and organizers who need fast project triage."
-        : "Startup judges, accelerators, angel investors, and early-stage VC-style screeners.",
+      "Unknown from verified evidence. Treat any target customer claim as unvalidated unless it appears in the provided pitch or live evidence.",
     marketSizing: {
       tamHypothesis:
-        "Tools and services for startup diligence, judging, accelerator screening, and AI-assisted research.",
+        "Unknown. ScoutLoop did not fabricate a market category without verified evidence.",
       samHypothesis:
-        "Programs and investment teams that screen many early-stage companies with limited analyst time.",
+        "Unknown. Provide pitch context or enable Bright Data evidence to form a defensible SAM hypothesis.",
       somHypothesis:
-        "Hackathon and accelerator teams willing to adopt lightweight evaluation support before broader VC workflows.",
+        "Unknown. No credible SOM estimate can be made from missing evidence.",
       confidence: "low",
       missingData: [
         "Paid market research",
@@ -113,47 +112,34 @@ export function createFallbackEvaluation({
     },
     competitors: [
       {
-        name: "Manual judging spreadsheets",
-        type: "alternative",
+        name: "No verified competitor evidence",
+        type: "direct",
         description:
-          "Common default workflow; flexible but weak at evidence capture and learning from feedback.",
-      },
-      {
-        name: "Generic LLM research workflows",
-        type: "indirect",
-        description:
-          "Can summarize a pitch but often lacks durable progress, confidence labels, and learning loops.",
-      },
-      {
-        name: "Do nothing",
-        type: "do_nothing",
-        description:
-          "Judges rely on pitch decks, quick searches, and intuition under time pressure.",
+          "Bright Data/live evidence did not return usable competitor data for this fallback run.",
       },
     ],
     differentiation: [
-      "Dashboard-first output instead of a generic chat transcript.",
-      "Explicit confidence and missing evidence labels.",
-      "Evaluator feedback becomes reusable operational memory.",
+      "Unknown from verified evidence.",
+      "Provide stronger source material or enable Bright Data to assess differentiation.",
     ],
     moat: [
-      "Potential workflow lock-in if teams standardize rubrics, feedback, and evidence trails.",
-      "Potential data advantage from repeated evaluation outcomes and judge corrections.",
+      "Unknown from verified evidence.",
+      "Ask founders for proof of technical defensibility, proprietary data, switching costs, or distribution advantage.",
     ],
     businessModel:
-      "Likely SaaS or usage-based pricing for accelerators, competitions, and screening teams. Pricing evidence is not available in the provided context.",
+      "Unknown from verified evidence. ScoutLoop did not infer pricing or revenue model.",
     distribution:
-      "Most plausible early channels are hackathon organizers, accelerator operators, university entrepreneurship programs, and VC analyst communities.",
+      "Unknown from verified evidence. Ask founders for acquisition channel proof.",
     tractionSignals: [
-      "No verified public traction was found in fallback mode.",
-      "Demo completeness and sponsor integration can be assessed during judging.",
+      "No verified traction signals were available in fallback mode.",
+      "Do not infer users, revenue, customers, funding, retention, or usage.",
     ],
     risks: [
       {
         risk: "Evaluation quality may become generic without strong evidence and feedback loops.",
         severity: "high",
         mitigation:
-          "Use Bright Data evidence, confidence labels, and Mubit lessons to sharpen repeated runs.",
+          "Configure Bright Data evidence and provide concrete source material before trusting the score.",
       },
       {
         risk: "Market size and traction claims are under-supported.",
@@ -170,24 +156,24 @@ export function createFallbackEvaluation({
               score: 7,
               weight: 25,
               explanation:
-                "The workflow is useful for judges if the evidence and feedback loop work reliably.",
-              confidence: "medium",
+                "Insufficient verified evidence. Score is intentionally conservative until live research succeeds.",
+              confidence: "low",
             },
             {
               category: "Technical execution",
               score: 7,
               weight: 25,
               explanation:
-                "The architecture is credible, but live integrations should be demonstrated.",
-              confidence: "medium",
+                "Cannot verify technical execution from fallback evidence.",
+              confidence: "low",
             },
             {
               category: "Creativity / originality",
               score: 7,
               weight: 20,
               explanation:
-                "The self-improving evaluation loop is more distinctive than a one-shot report.",
-              confidence: "medium",
+                "Originality cannot be assessed without competitor and product evidence.",
+              confidence: "low",
             },
           ]
         : [
@@ -196,16 +182,15 @@ export function createFallbackEvaluation({
               score: 7,
               weight: 15,
               explanation:
-                "High-volume early-stage screening is a real workflow pain, but urgency varies by evaluator.",
-              confidence: "medium",
+                "Problem severity cannot be verified from fallback evidence alone.",
+              confidence: "low",
             },
             {
               category: "Competitive differentiation",
               score: 6,
               weight: 15,
-              explanation:
-                "Differentiation depends on durable workflow, evidence quality, and memory actually improving outputs.",
-              confidence: "medium",
+              explanation: "No verified competitor evidence was available.",
+              confidence: "low",
             },
             {
               category: "Evidence quality / traction",
@@ -216,8 +201,8 @@ export function createFallbackEvaluation({
               confidence: "low",
             },
           ],
-    overallScore: input.mode === "hackathon_judge" ? 7.1 : 6.4,
-    overallConfidence: "medium",
+    overallScore: 4,
+    overallConfidence: "low",
     founderQuestions: questions.map((question, index) => ({
       question,
       category:
@@ -234,7 +219,7 @@ export function createFallbackEvaluation({
     lessonsApplied: lessons ?? [],
     warnings: [
       ...warnings,
-      "Fallback evaluation used conservative assumptions and did not invent revenue, users, funding, or customers.",
+      "Fallback mode: no fake companies, customers, revenue, funding, traction, or market numbers were generated.",
     ],
   };
 }

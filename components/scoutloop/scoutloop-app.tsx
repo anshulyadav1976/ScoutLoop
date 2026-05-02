@@ -26,7 +26,6 @@ import {
   evaluationModes,
   quickFeedbackOptions,
   SCOUTLOOP_MAX_TEXT_FILE_BYTES,
-  seedInputs,
   sharperQuestionExamples,
   techBadges,
   workflowTimeline,
@@ -160,17 +159,6 @@ export function ScoutLoopApp() {
     }
   }
 
-  function applySeed(index: number) {
-    const seed = seedInputs[index].input;
-    setMode(seed.mode);
-    setUrl(seed.url ?? "");
-    setPitchText(seed.pitchText ?? "");
-    setUploadedTexts(seed.uploadedTexts ?? []);
-    setEvaluation(null);
-    setStoredLesson("");
-    setStatus("idle");
-  }
-
   async function startEvaluation(useLearnedContext = false) {
     setError("");
     setStatus("running");
@@ -228,7 +216,7 @@ export function ScoutLoopApp() {
           mergedContext: [pitchText, ...uploadedTexts.map((file) => file.text)]
             .filter(Boolean)
             .join("\n\n"),
-          projectName: "ScoutLoop demo run",
+          projectName: url || "Provided evaluation",
         },
         lessons: storedLesson
           ? [
@@ -356,20 +344,6 @@ export function ScoutLoopApp() {
                 </Badge>
               ))}
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {seedInputs.map((seed, index) => (
-              <Button
-                key={seed.label}
-                onClick={() => applySeed(index)}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                {seed.label}
-              </Button>
-            ))}
           </div>
         </div>
       </section>

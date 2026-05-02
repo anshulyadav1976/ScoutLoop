@@ -14,7 +14,14 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
   const mcpUrl = process.env.BRIGHT_DATA_MCP_URL;
   const apiKey = getBrightDataKey();
 
+  console.log("[ScoutLoop][BrightData] search:start", {
+    query,
+    hasMcpUrl: Boolean(mcpUrl),
+    hasApiKey: Boolean(apiKey),
+  });
+
   if (!(mcpUrl && apiKey)) {
+    console.warn("[ScoutLoop][BrightData] search:skipped missing config");
     throw new Error("Bright Data MCP URL is not configured.");
   }
 
@@ -36,11 +43,19 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
   });
 
   if (!response.ok) {
+    console.error("[ScoutLoop][BrightData] search:failed", {
+      query,
+      status: response.status,
+    });
     throw new Error("Bright Data search failed.");
   }
 
   const payload = await response.json();
   const text = JSON.stringify(payload);
+  console.log("[ScoutLoop][BrightData] search:success", {
+    query,
+    responseChars: text.length,
+  });
 
   return [
     {
@@ -54,7 +69,14 @@ export async function scrapeMarkdown(url: string): Promise<ScrapedPage> {
   const mcpUrl = process.env.BRIGHT_DATA_MCP_URL;
   const apiKey = getBrightDataKey();
 
+  console.log("[ScoutLoop][BrightData] scrape:start", {
+    url,
+    hasMcpUrl: Boolean(mcpUrl),
+    hasApiKey: Boolean(apiKey),
+  });
+
   if (!(mcpUrl && apiKey)) {
+    console.warn("[ScoutLoop][BrightData] scrape:skipped missing config");
     throw new Error("Bright Data MCP URL is not configured.");
   }
 
@@ -76,10 +98,15 @@ export async function scrapeMarkdown(url: string): Promise<ScrapedPage> {
   });
 
   if (!response.ok) {
+    console.error("[ScoutLoop][BrightData] scrape:failed", {
+      url,
+      status: response.status,
+    });
     throw new Error("Bright Data scrape failed.");
   }
 
   const payload = await response.json();
+  console.log("[ScoutLoop][BrightData] scrape:success", { url });
   return {
     url,
     title: url,
@@ -135,6 +162,7 @@ export async function gatherStartupEvidence(
   input: NormalizedScoutLoopInput
 ): Promise<EvidenceBundle> {
   if (process.env.SCOUTLOOP_USE_BRIGHT_DATA === "false") {
+    console.warn("[ScoutLoop][BrightData] disabled by env");
     return fallbackEvidence(
       input,
       "Bright Data evidence disabled; evaluation used provided text only."
@@ -200,6 +228,7 @@ export async function gatherStartupEvidence(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
+    console.error("[ScoutLoop][BrightData] fallback", message);
     return fallbackEvidence(
       input,
       `Bright Data evidence unavailable; evaluation used pasted/provided text only. ${message}`

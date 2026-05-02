@@ -59,6 +59,19 @@ Open:
 http://localhost:3000/scoutloop
 ```
 
+The terminal running `pnpm dev` prints ScoutLoop integration logs, for example:
+
+```txt
+[ScoutLoop][WDK] started
+[ScoutLoop][BrightData] scrape:start
+[ScoutLoop][BrightData] search:success
+[ScoutLoop] v0:generate:success
+[ScoutLoop][Neon] run:save:success
+[ScoutLoop][Mubit] feedback:lesson-stored
+```
+
+If Bright Data or Mubit are not actually configured, the same terminal will show a `skipped`, `failed`, or `fallback` log instead of silently pretending the integration worked.
+
 ## Checks
 
 ```bash
@@ -77,7 +90,7 @@ tsx lib/db/migrate && next build
 
 1. Open `/scoutloop`.
 2. Pick `Startup Judge` or `Hackathon Judge`.
-3. Paste a URL, pitch text, or upload `.txt`, `.md`, `.csv`, or `.json`.
+3. Paste your own real URL, pitch text, or upload `.txt`, `.md`, `.csv`, or `.json`.
 4. Start evaluation.
 5. Watch the WDK-style workflow timeline.
 6. Review the dashboard: score, summary, market hypotheses, competitors, moat, risks, evidence cards, and founder questions.

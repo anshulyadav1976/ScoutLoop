@@ -6,6 +6,9 @@ import { scoutLoopEvaluationWorkflow } from "@/workflows/scoutloop-evaluation";
 
 export async function POST(request: Request) {
   const input = (await request.json()) as ScoutLoopInput;
+  console.log("[ScoutLoop][API] evaluate", {
+    useWdk: process.env.SCOUTLOOP_USE_WDK,
+  });
 
   if (process.env.SCOUTLOOP_USE_WDK === "false") {
     const evaluation = await runScoutLoopEvaluation(input);
@@ -17,7 +20,9 @@ export async function POST(request: Request) {
   }
 
   try {
+    console.log("[ScoutLoop][WDK] start");
     const run = await start(scoutLoopEvaluationWorkflow, [input]);
+    console.log("[ScoutLoop][WDK] started", { runId: run.runId });
     return NextResponse.json({ runId: run.runId });
   } catch (error) {
     const evaluation = await runScoutLoopEvaluation(input);

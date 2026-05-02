@@ -25,10 +25,19 @@ function createLesson(text: string): MemoryLesson {
 export async function recallLessons(
   context: MemoryRecallContext
 ): Promise<MemoryLesson[]> {
+  console.log("[ScoutLoop][Mubit] recall:start", {
+    mode: context.mode,
+    hasApiKey: Boolean(process.env.MUBIT_API_KEY),
+    agentId: process.env.MUBIT_AGENT_ID || null,
+    adapter: "neon/local-fallback",
+  });
   const persistedLessons = await loadMemoryLessons(context.mode).catch(
     () => []
   );
   if (persistedLessons.length) {
+    console.log("[ScoutLoop][Mubit] recall:persisted", {
+      count: persistedLessons.length,
+    });
     return persistedLessons;
   }
 
@@ -41,20 +50,36 @@ export async function recallLessons(
     );
   });
 
-  return scoped.slice(-3);
+  const recalled = scoped.slice(-3);
+  console.log("[ScoutLoop][Mubit] recall:local", { count: recalled.length });
+  return recalled;
 }
 
 export function recordRunOutcome(_outcome: RunOutcome): void {
+  console.log("[ScoutLoop][Mubit] outcome:recorded-local", {
+    evaluationId: _outcome.evaluationId,
+    overallScore: _outcome.overallScore,
+  });
   return;
 }
 
 export async function recordEvaluatorFeedback(
   feedback: EvaluatorFeedback
 ): Promise<MemoryLesson[]> {
+  console.log("[ScoutLoop][Mubit] feedback:start", {
+    evaluationId: feedback.evaluationId,
+    quickFeedback: feedback.quickFeedback,
+    hasCustomFeedback: Boolean(feedback.customFeedback),
+    hasApiKey: Boolean(process.env.MUBIT_API_KEY),
+  });
   await saveEvaluatorFeedback(feedback).catch(() => undefined);
   const lessons = reflectFeedbackIntoLessons(feedback);
   localLessons.push(...lessons);
   await saveMemoryLessons(lessons, feedback.mode).catch(() => undefined);
+  console.log("[ScoutLoop][Mubit] feedback:lesson-stored", {
+    count: lessons.length,
+    source: lessons[0]?.source,
+  });
   return lessons;
 }
 
