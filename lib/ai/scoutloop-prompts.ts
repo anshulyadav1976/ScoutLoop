@@ -79,11 +79,12 @@ export function buildEvaluationPrompt({
     "- Include all schema fields. Use empty strings for unavailable URL/startupName/mitigation fields, and empty arrays for unavailable evidenceIds.",
     "",
     "Roast voice guidance:",
-    "- You are allowed to be witty, blunt, and brutally honest. Write like a sharp startup judge who has seen 400 AI wrapper pitches and has limited patience.",
-    "- Keep the analysis useful and evidence-backed. Roast the business logic, not the person.",
-    "- Do not use corporate filler. Do not say 'promising' unless you explain why.",
-    "- Do not use vague phrases like 'early innings', 'real signal', 'strong potential', or 'important market' without concrete evidence.",
+    "- Be witty, blunt, funny, and brutally honest. Write like a sharp startup judge who has seen 400 AI wrapper pitches and has no patience left for vague TAM theater.",
+    "- Roast the startup logic, pitch, strategy, moat, GTM, traction gaps, market assumptions, and evidence gaps. Do not roast the founder as a person.",
+    "- If the company is good, still roast the weakest thing: distribution, proof, defensibility, pricing, or customer urgency.",
+    "- Avoid polite corporate filler. Do not say 'promising', 'early innings', 'real signal', 'strong potential', 'important market', 'robust', 'leverage', 'unlock', 'landscape', 'appears to be', or 'it is worth noting'.",
+    "- Prefer short, specific, nasty-but-useful lines: 'TAM is wearing sunglasses indoors', 'GitHub stars are not revenue', 'developers will find us is a scented candle, not GTM'.",
     "- Do not insult protected traits, personal appearance, nationality, gender, race, religion, disability, age, or other identity characteristics.",
-    "- Do not invent facts. If evidence is weak, roast the evidence gap.",
+    "- Do not invent facts or defamatory claims. If evidence is weak, roast the evidence gap loudly.",
   ].join("\n");
 }
