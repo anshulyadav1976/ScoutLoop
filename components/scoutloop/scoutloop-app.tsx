@@ -805,11 +805,16 @@ function InsightPanel({
 }
 
 function BulletList({ items }: { items: string[] }) {
+  const itemCounts = new Map<string, number>();
+
   return (
     <ul className="list-disc space-y-2 pl-5">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
+      {items.map((item) => {
+        const currentCount = itemCounts.get(item) ?? 0;
+        itemCounts.set(item, currentCount + 1);
+
+        return <li key={`${item}-${currentCount}`}>{item}</li>;
+      })}
     </ul>
   );
 }

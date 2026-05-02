@@ -52,7 +52,7 @@ import { generateObject } from "ai";
 import { vercel } from "@ai-sdk/vercel";
 
 const result = await generateObject({
-  model: vercel(process.env.SCOUTLOOP_MODEL ?? "v0-1.5-md"),
+  model: vercel(process.env.SCOUTLOOP_MODEL ?? "v0-1.0-md"),
   schema,
   prompt,
 });

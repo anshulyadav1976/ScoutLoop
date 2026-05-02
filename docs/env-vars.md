@@ -8,10 +8,10 @@ Create `.env.local` using `.env.example.scoutloop`.
 
 ```bash
 V0_API_KEY=
-SCOUTLOOP_MODEL=v0-1.5-md
+SCOUTLOOP_MODEL=v0-1.0-md
 ```
 
-Use `v0-1.5-md` for normal runs. Use `v0-1.5-lg` only if available and latency/cost are acceptable.
+Use `v0-1.0-md` for normal local runs. If your v0 account exposes a newer model name, set `SCOUTLOOP_MODEL` to that value; the runtime wrapper falls back when a stale `v0-1.5-*` value is configured.
 
 ### Mubit
 

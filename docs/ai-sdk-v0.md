@@ -21,7 +21,7 @@ pnpm add ai @ai-sdk/vercel zod
 
 ```bash
 V0_API_KEY=
-SCOUTLOOP_MODEL=v0-1.5-md
+SCOUTLOOP_MODEL=v0-1.0-md
 ```
 
 ## Provider wrapper
@@ -34,7 +34,7 @@ Example pattern:
 import { vercel } from "@ai-sdk/vercel";
 
 export function getScoutLoopModel() {
-  const modelName = process.env.SCOUTLOOP_MODEL || "v0-1.5-md";
+  const modelName = process.env.SCOUTLOOP_MODEL || "v0-1.0-md";
   return vercel(modelName);
 }
 ```
