@@ -1,6 +1,7 @@
 import { sharperQuestionExamples } from "@/lib/scoutloop/constants";
 import type {
   EvidenceCard,
+  FounderQuestion,
   MemoryLesson,
   NormalizedScoutLoopInput,
   ScoutLoopEvaluation,
@@ -58,6 +59,19 @@ export function createFallbackEvaluation({
   const cards = evidenceCards?.length
     ? evidenceCards
     : createDemoEvidence(input);
+  const hasPublicEvidence = cards.some((card) =>
+    ["homepage", "search", "competitor", "market"].includes(card.sourceType)
+  );
+  const publicEvidenceCount = cards.filter((card) =>
+    ["homepage", "search", "competitor", "market"].includes(card.sourceType)
+  ).length;
+  const competitorCards = cards.filter(
+    (card) => card.sourceType === "competitor"
+  );
+  const marketCards = cards.filter((card) => card.sourceType === "market");
+  const pitchCards = cards.filter((card) =>
+    ["pitch", "uploaded_text"].includes(card.sourceType)
+  );
   const lessonText = lessons
     ?.map((lesson) => lesson.lesson.toLowerCase())
     .join(" ");
@@ -82,6 +96,49 @@ export function createFallbackEvaluation({
   const questions = useSharperQuestions
     ? sharperQuestionExamples
     : defaultQuestions;
+  const evidenceIds = cards.map((card) => card.id);
+  const primaryEvidence = cards
+    .slice(0, 4)
+    .map((card) => `${card.title}: ${card.snippet}`)
+    .join(" ");
+  const sourceSummary = hasPublicEvidence
+    ? `Bright Data returned ${publicEvidenceCount} public evidence card${
+        publicEvidenceCount === 1 ? "" : "s"
+      }.`
+    : "Only evaluator-provided text was available.";
+  const deterministicWarning =
+    "Deterministic fallback: model generation was unavailable, so ScoutLoop summarized real evidence without inventing unsupported claims.";
+  const publicEvidenceConfidence = publicEvidenceCount >= 4 ? "medium" : "low";
+  const overallScore = hasPublicEvidence
+    ? Math.min(7, 4 + Math.floor(publicEvidenceCount / 3))
+    : 4;
+  const competitorList = competitorCards.length
+    ? competitorCards.slice(0, 3).map((card) => ({
+        name: card.title,
+        type: "alternative" as const,
+        description: card.snippet,
+        evidenceIds: [card.id],
+      }))
+    : [
+        {
+          name: "No verified competitor evidence",
+          type: "direct" as const,
+          description:
+            "No competitor evidence was available from Bright Data or provided source material.",
+        },
+      ];
+  const founderQuestions = questions.map((question, index) => ({
+    question,
+    category:
+      useSharperQuestions && index < 2
+        ? index === 0
+          ? "moat"
+          : "technical"
+        : "risk",
+    whyAsk:
+      "This tests whether the project has evidence-backed substance beyond a polished pitch.",
+    severity: index === 0 ? "high" : "medium",
+  })) satisfies FounderQuestion[];
 
   return {
     id: crypto.randomUUID(),
@@ -89,57 +146,73 @@ export function createFallbackEvaluation({
     createdAt: new Date().toISOString(),
     startupName: input.projectName,
     url: input.url,
-    summary:
-      "ScoutLoop could not complete live structured research for this run. This fallback is limited to provided text and explicitly marks missing public evidence.",
+    summary: `${sourceSummary} ScoutLoop produced a conservative evidence-backed evaluation because live structured generation was unavailable.`,
     problem: input.pitchText
-      ? "Problem statement inferred only from the provided pitch text. Public validation was not verified in this fallback."
-      : "Insufficient evidence. Add pitch text, uploaded notes, or configure Bright Data scraping to evaluate the problem.",
+      ? `Problem statement inferred from provided pitch/context and checked against collected evidence. ${primaryEvidence.slice(
+          0,
+          260
+        )}`
+      : hasPublicEvidence
+        ? `Problem statement requires founder clarification. Public evidence found: ${primaryEvidence.slice(
+            0,
+            260
+          )}`
+        : "Insufficient evidence. Add pitch text, uploaded notes, or configure Bright Data scraping to evaluate the problem.",
     targetCustomer:
-      "Unknown from verified evidence. Treat any target customer claim as unvalidated unless it appears in the provided pitch or live evidence.",
+      pitchCards.length > 0
+        ? "Target customer should be validated from the submitted pitch/uploaded text; ScoutLoop will not infer a buyer persona that is not explicitly evidenced."
+        : "Unknown from verified evidence. Treat any target customer claim as unvalidated unless it appears in the pitch or public evidence.",
     marketSizing: {
       tamHypothesis:
+        marketCards[0]?.snippet ??
         "Unknown. ScoutLoop did not fabricate a market category without verified evidence.",
       samHypothesis:
-        "Unknown. Provide pitch context or enable Bright Data evidence to form a defensible SAM hypothesis.",
+        marketCards[1]?.snippet ??
+        "Unknown. Provide pitch context or stronger market evidence to form a defensible SAM hypothesis.",
       somHypothesis:
         "Unknown. No credible SOM estimate can be made from missing evidence.",
-      confidence: "low",
+      confidence: marketCards.length ? "medium" : "low",
       missingData: [
         "Paid market research",
         "Customer willingness-to-pay evidence",
         "Observed usage or retention data",
       ],
     },
-    competitors: [
-      {
-        name: "No verified competitor evidence",
-        type: "direct",
-        description:
-          "Bright Data/live evidence did not return usable competitor data for this fallback run.",
-      },
-    ],
-    differentiation: [
-      "Unknown from verified evidence.",
-      "Provide stronger source material or enable Bright Data to assess differentiation.",
-    ],
+    competitors: competitorList,
+    differentiation: hasPublicEvidence
+      ? [
+          "Differentiation is not proven by public search evidence alone.",
+          "Use the evidence cards to ask founders what is proprietary, hard to copy, or materially better than alternatives.",
+        ]
+      : [
+          "Unknown from verified evidence.",
+          "Provide stronger source material or enable Bright Data to assess differentiation.",
+        ],
     moat: [
-      "Unknown from verified evidence.",
+      hasPublicEvidence
+        ? "No durable moat was proven by the collected public evidence."
+        : "Unknown from verified evidence.",
       "Ask founders for proof of technical defensibility, proprietary data, switching costs, or distribution advantage.",
     ],
     businessModel:
-      "Unknown from verified evidence. ScoutLoop did not infer pricing or revenue model.",
+      "Unknown unless explicitly stated in submitted or public evidence. ScoutLoop did not infer pricing or revenue model.",
     distribution:
-      "Unknown from verified evidence. Ask founders for acquisition channel proof.",
-    tractionSignals: [
-      "No verified traction signals were available in fallback mode.",
-      "Do not infer users, revenue, customers, funding, retention, or usage.",
-    ],
+      "Unknown unless explicitly stated in submitted or public evidence. Ask founders for acquisition channel proof.",
+    tractionSignals: hasPublicEvidence
+      ? [
+          "Public evidence was found, but it does not by itself verify users, revenue, customers, funding, retention, or usage.",
+          "Ask for concrete traction artifacts before increasing confidence.",
+        ]
+      : [
+          "No verified traction signals were available.",
+          "Do not infer users, revenue, customers, funding, retention, or usage.",
+        ],
     risks: [
       {
-        risk: "Evaluation quality may become generic without strong evidence and feedback loops.",
+        risk: "LLM provider unavailable, so this run used deterministic evidence synthesis instead of v0 structured generation.",
         severity: "high",
         mitigation:
-          "Configure Bright Data evidence and provide concrete source material before trusting the score.",
+          "Enable v0 Model API access or add another AI SDK provider key for richer structured analysis.",
       },
       {
         risk: "Market size and traction claims are under-supported.",
@@ -153,73 +226,69 @@ export function createFallbackEvaluation({
         ? [
             {
               category: "Usefulness",
-              score: 7,
+              score: hasPublicEvidence ? 6 : 4,
               weight: 25,
               explanation:
-                "Insufficient verified evidence. Score is intentionally conservative until live research succeeds.",
-              confidence: "low",
+                "Score is conservative and tied only to available submitted/public evidence.",
+              confidence: publicEvidenceConfidence,
+              evidenceIds,
             },
             {
               category: "Technical execution",
-              score: 7,
+              score: 4,
               weight: 25,
               explanation:
-                "Cannot verify technical execution from fallback evidence.",
+                "Cannot verify technical execution from public/search evidence alone.",
               confidence: "low",
             },
             {
               category: "Creativity / originality",
-              score: 7,
+              score: hasPublicEvidence ? 5 : 4,
               weight: 20,
               explanation:
-                "Originality cannot be assessed without competitor and product evidence.",
-              confidence: "low",
+                "Originality requires competitor comparison and working-demo proof.",
+              confidence: publicEvidenceConfidence,
+              evidenceIds: competitorCards.map((card) => card.id),
             },
           ]
         : [
             {
               category: "Problem severity",
-              score: 7,
+              score: hasPublicEvidence ? 6 : 4,
               weight: 15,
               explanation:
-                "Problem severity cannot be verified from fallback evidence alone.",
-              confidence: "low",
+                "Problem severity is partially supported only when the pitch/public evidence states a clear pain.",
+              confidence: publicEvidenceConfidence,
+              evidenceIds,
             },
             {
               category: "Competitive differentiation",
-              score: 6,
+              score: competitorCards.length ? 5 : 4,
               weight: 15,
-              explanation: "No verified competitor evidence was available.",
-              confidence: "low",
+              explanation:
+                "Competitor evidence exists, but differentiation is not proven without founder/customer proof.",
+              confidence: competitorCards.length ? "medium" : "low",
+              evidenceIds: competitorCards.map((card) => card.id),
             },
             {
               category: "Evidence quality / traction",
-              score: 4,
+              score: hasPublicEvidence ? 5 : 4,
               weight: 10,
               explanation:
-                "Fallback mode has limited public verification and should not infer traction.",
-              confidence: "low",
+                "Bright Data evidence improves public verification, but traction remains unverified.",
+              confidence: publicEvidenceConfidence,
+              evidenceIds,
             },
           ],
-    overallScore: 4,
-    overallConfidence: "low",
-    founderQuestions: questions.map((question, index) => ({
-      question,
-      category:
-        useSharperQuestions && index < 2
-          ? index === 0
-            ? "moat"
-            : "technical"
-          : "risk",
-      whyAsk:
-        "This tests whether the project has evidence-backed substance beyond a polished pitch.",
-      severity: index === 0 ? "high" : "medium",
-    })),
+    overallScore,
+    overallConfidence: publicEvidenceConfidence,
+    founderQuestions,
     evidenceCards: cards,
     lessonsApplied: lessons ?? [],
     warnings: [
       ...warnings,
-      "Fallback mode: no fake companies, customers, revenue, funding, traction, or market numbers were generated.",
+      deterministicWarning,
+      "No fake companies, customers, revenue, funding, traction, or market numbers were generated.",
     ],
   };
 }

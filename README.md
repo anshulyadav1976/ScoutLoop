@@ -9,7 +9,7 @@ It is built from the official Vercel Chatbot template and adds a dedicated dashb
 - Next.js App Router and TypeScript
 - Vercel Chatbot template
 - Vercel AI SDK v6
-- v0 Model API via `@ai-sdk/vercel`
+- OpenAI via `@ai-sdk/openai`, with v0 Model API support via `@ai-sdk/vercel`
 - Workflow DevKit / Vercel Workflow
 - Bright Data evidence adapter with graceful fallback
 - Mubit memory adapter with Neon/local fallback
@@ -37,6 +37,11 @@ Required variables:
 ```bash
 V0_API_KEY=
 SCOUTLOOP_MODEL=v0-1.0-md
+OPENAI_API_KEY=
+SCOUTLOOP_MODEL_PROVIDER=openai
+SCOUTLOOP_OPENAI_MODEL=gpt-4o-mini
+SCOUTLOOP_MAX_OUTPUT_TOKENS=1800
+SCOUTLOOP_MODEL_TIMEOUT_MS=120000
 DATABASE_URL=
 POSTGRES_URL=
 MUBIT_API_KEY=
@@ -46,6 +51,10 @@ BRIGHT_DATA_MCP_URL=
 SCOUTLOOP_USE_WDK=true
 SCOUTLOOP_ENABLE_DIRECT_FALLBACK=true
 ```
+
+Model selection is centralized in `lib/ai/scoutloop-model.ts`. If
+`OPENAI_API_KEY` exists, ScoutLoop uses OpenAI by default. Force v0 with
+`SCOUTLOOP_MODEL_PROVIDER=v0`.
 
 Run locally:
 
@@ -65,7 +74,7 @@ The terminal running `pnpm dev` prints ScoutLoop integration logs, for example:
 [ScoutLoop][WDK] started
 [ScoutLoop][BrightData] scrape:start
 [ScoutLoop][BrightData] search:success
-[ScoutLoop] v0:generate:success
+[ScoutLoop] model:generate:success
 [ScoutLoop][Neon] run:save:success
 [ScoutLoop][Mubit] feedback:lesson-stored
 ```

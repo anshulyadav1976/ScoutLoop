@@ -76,5 +76,6 @@ export function buildEvaluationPrompt({
     "- Every uncertain area must carry low/medium/high confidence.",
     "- Include missing evidence in warnings or missingData.",
     "- Founder questions must be specific and non-generic.",
+    "- Include all schema fields. Use empty strings for unavailable URL/startupName/mitigation fields, and empty arrays for unavailable evidenceIds.",
   ].join("\n");
 }

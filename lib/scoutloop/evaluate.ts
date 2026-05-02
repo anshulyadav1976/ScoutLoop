@@ -1,5 +1,9 @@
 import { generateText, Output } from "ai";
-import { getScoutLoopModel } from "@/lib/ai/scoutloop-model";
+import {
+  getScoutLoopModel,
+  getScoutLoopModelName,
+  getScoutLoopModelProvider,
+} from "@/lib/ai/scoutloop-model";
 import { buildEvaluationPrompt } from "@/lib/ai/scoutloop-prompts";
 import { scoutLoopEvaluationSchema } from "@/lib/ai/scoutloop-schemas";
 import { createFallbackEvaluation } from "@/lib/scoutloop/demo-result";
@@ -130,6 +134,10 @@ async function generateWithModel({
       schema: scoutLoopEvaluationSchema,
     }),
     prompt,
+    maxOutputTokens: Number(process.env.SCOUTLOOP_MAX_OUTPUT_TOKENS ?? 1800),
+    abortSignal: AbortSignal.timeout(
+      Number(process.env.SCOUTLOOP_MODEL_TIMEOUT_MS ?? 120_000)
+    ),
   });
 
   return { output, lessons };
@@ -162,9 +170,14 @@ export async function runScoutLoopEvaluation(
   });
 
   try {
-    console.log("[ScoutLoop] v0:generate:start");
+    console.log("[ScoutLoop] model:generate:start", {
+      provider: getScoutLoopModelProvider(),
+      model: getScoutLoopModelName(),
+    });
     const { output, lessons } = await generateWithModel({ input, evidence });
-    console.log("[ScoutLoop] v0:generate:success", {
+    console.log("[ScoutLoop] model:generate:success", {
+      provider: getScoutLoopModelProvider(),
+      model: getScoutLoopModelName(),
       scorecardItems: output.scorecard.length,
       evidenceCards: output.evidenceCards.length,
       lessonsApplied: lessons.length,
@@ -201,7 +214,18 @@ export async function runScoutLoopEvaluation(
     return evaluation;
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
-    console.error("[ScoutLoop] v0:generate:failed", message);
+    console.error("[ScoutLoop] model:generate:failed", {
+      provider: getScoutLoopModelProvider(),
+      model: getScoutLoopModelName(),
+      message,
+    });
+    console.warn("[ScoutLoop] deterministic:evaluation:start", {
+      reason: message,
+      evidenceCards: evidence.evidenceCards.length,
+      searchResults: evidence.searchResults.length,
+      competitorResults: evidence.competitorResults.length,
+      marketResults: evidence.marketResults.length,
+    });
     const lessons = await recallLessons({
       mode: input.mode,
       projectName: input.projectName,
@@ -213,15 +237,16 @@ export async function runScoutLoopEvaluation(
       lessons,
       warnings: [
         ...evidence.warnings,
-        `v0 structured generation unavailable; direct fallback used. ${message}`,
+        `${getScoutLoopModelProvider()} structured generation unavailable; direct fallback used. ${message}`,
       ],
     });
     evaluation.workflowEvents = completeWorkflowEvents(evaluation.warnings);
     await saveEvaluationRun(evaluation).catch(() => undefined);
-    console.log("[ScoutLoop] evaluation:fallback", {
+    console.log("[ScoutLoop] deterministic:evaluation:complete", {
       id: evaluation.id,
       reason: message,
       overallScore: evaluation.overallScore,
+      evidenceCards: evaluation.evidenceCards.length,
     });
     return evaluation;
   }

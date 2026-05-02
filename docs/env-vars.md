@@ -4,14 +4,19 @@ Create `.env.local` using `.env.example.scoutloop`.
 
 ## Required for core ScoutLoop
 
-### v0 Model API
+### Model provider
 
 ```bash
+OPENAI_API_KEY=
+SCOUTLOOP_MODEL_PROVIDER=openai
+SCOUTLOOP_OPENAI_MODEL=gpt-4o-mini
+SCOUTLOOP_MAX_OUTPUT_TOKENS=1800
+SCOUTLOOP_MODEL_TIMEOUT_MS=120000
 V0_API_KEY=
 SCOUTLOOP_MODEL=v0-1.0-md
 ```
 
-Use `v0-1.0-md` for normal local runs. If your v0 account exposes a newer model name, set `SCOUTLOOP_MODEL` to that value; the runtime wrapper falls back when a stale `v0-1.5-*` value is configured.
+ScoutLoop uses OpenAI first when `OPENAI_API_KEY` exists. Force v0 with `SCOUTLOOP_MODEL_PROVIDER=v0`. Use `v0-1.0-md` for v0 local runs unless your account exposes a newer model name.
 
 ### Mubit
 

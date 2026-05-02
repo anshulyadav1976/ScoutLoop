@@ -5,7 +5,7 @@ const confidenceSchema = z.enum(["low", "medium", "high"]);
 const evidenceCardSchema = z.object({
   id: z.string(),
   title: z.string(),
-  url: z.string().optional(),
+  url: z.string(),
   snippet: z.string(),
   sourceType: z.enum([
     "homepage",
@@ -19,7 +19,7 @@ const evidenceCardSchema = z.object({
 });
 
 export const scoutLoopEvaluationSchema = z.object({
-  startupName: z.string().optional(),
+  startupName: z.string(),
   summary: z.string(),
   problem: z.string(),
   targetCustomer: z.string(),
@@ -35,7 +35,7 @@ export const scoutLoopEvaluationSchema = z.object({
       name: z.string(),
       type: z.enum(["direct", "indirect", "alternative", "do_nothing"]),
       description: z.string(),
-      evidenceIds: z.array(z.string()).optional(),
+      evidenceIds: z.array(z.string()),
     })
   ),
   differentiation: z.array(z.string()),
@@ -47,17 +47,17 @@ export const scoutLoopEvaluationSchema = z.object({
     z.object({
       risk: z.string(),
       severity: z.enum(["low", "medium", "high"]),
-      mitigation: z.string().optional(),
+      mitigation: z.string(),
     })
   ),
   scorecard: z.array(
     z.object({
       category: z.string(),
       score: z.number().min(0).max(10),
-      weight: z.number().optional(),
+      weight: z.number(),
       explanation: z.string(),
       confidence: confidenceSchema,
-      evidenceIds: z.array(z.string()).optional(),
+      evidenceIds: z.array(z.string()),
     })
   ),
   overallScore: z.number().min(0).max(10),
