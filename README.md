@@ -1,71 +1,120 @@
-<a href="https://chatbot.ai-sdk.dev/demo">
-  <img alt="Chatbot" src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Chatbot</h1>
-</a>
+# ScoutLoop
 
-<p align="center">
-    Chatbot (formerly AI Chatbot) is a free, open-source template built with Next.js and the AI SDK that helps you quickly build powerful chatbot applications.
-</p>
+ScoutLoop is a Vercel-native, durable, self-improving due diligence agent for startup judges, hackathon judges, accelerators, and early-stage VC-style screening.
 
-<p align="center">
-  <a href="https://chatbot.ai-sdk.dev/docs"><strong>Read Docs</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
-</p>
-<br/>
+It is built from the official Vercel Chatbot template and adds a dedicated dashboard route at `/scoutloop`.
 
-## Features
+## Stack
 
-- [Next.js](https://nextjs.org) App Router
-  - Advanced routing for seamless navigation and performance
-  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
-- [AI SDK](https://ai-sdk.dev/docs/introduction)
-  - Unified API for generating text, structured objects, and tool calls with LLMs
-  - Hooks for building dynamic chat and generative user interfaces
-  - Supports OpenAI, Anthropic, Google, xAI, and other model providers via AI Gateway
-- [shadcn/ui](https://ui.shadcn.com)
-  - Styling with [Tailwind CSS](https://tailwindcss.com)
-  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
-- [Auth.js](https://authjs.dev)
-  - Simple and secure authentication
+- Next.js App Router and TypeScript
+- Vercel Chatbot template
+- Vercel AI SDK v6
+- v0 Model API via `@ai-sdk/vercel`
+- Workflow DevKit / Vercel Workflow
+- Bright Data evidence adapter with graceful fallback
+- Mubit memory adapter with Neon/local fallback
+- Neon Postgres with Drizzle migrations
+- shadcn/ui-style components and Tailwind
 
-## Model Providers
+## Local Setup
 
-This template uses the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) to access multiple AI models through a unified interface. Models are configured in `lib/ai/models.ts` with per-model provider routing. Included models: Mistral, Moonshot, DeepSeek, OpenAI, and xAI.
-
-### AI Gateway Authentication
-
-**For Vercel deployments**: Authentication is handled automatically via OIDC tokens.
-
-**For non-Vercel deployments**: You need to provide an AI Gateway API key by setting the `AI_GATEWAY_API_KEY` environment variable in your `.env.local` file.
-
-With the [AI SDK](https://ai-sdk.dev/docs/introduction), you can also switch to direct LLM providers like [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://ai-sdk.dev/providers/ai-sdk-providers) with just a few lines of code.
-
-## Deploy Your Own
-
-You can deploy your own version of Chatbot to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/templates/next.js/chatbot)
-
-## Running locally
-
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
-
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various AI and authentication provider accounts.
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
+Install dependencies:
 
 ```bash
 pnpm install
-pnpm db:migrate # Setup database or apply latest database changes
+```
+
+Create local env from the provided secret source:
+
+```bash
+cp env.txt .env.local
+```
+
+In this repo, `.env.local` is generated locally from `env.txt` and is ignored by Git. Do not commit secrets.
+
+Required variables:
+
+```bash
+V0_API_KEY=
+SCOUTLOOP_MODEL=v0-1.5-md
+DATABASE_URL=
+POSTGRES_URL=
+MUBIT_API_KEY=
+MUBIT_AGENT_ID=
+BRIGHT_DATA_API_KEY=
+BRIGHT_DATA_MCP_URL=
+SCOUTLOOP_USE_WDK=true
+SCOUTLOOP_ENABLE_DIRECT_FALLBACK=true
+```
+
+Run locally:
+
+```bash
 pnpm dev
 ```
 
-Your app template should now be running on [localhost:3000](http://localhost:3000).
+Open:
+
+```txt
+http://localhost:3000/scoutloop
+```
+
+## Checks
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+The build runs Drizzle migrations first:
+
+```bash
+tsx lib/db/migrate && next build
+```
+
+## Demo Flow
+
+1. Open `/scoutloop`.
+2. Pick `Startup Judge` or `Hackathon Judge`.
+3. Paste a URL, pitch text, or upload `.txt`, `.md`, `.csv`, or `.json`.
+4. Start evaluation.
+5. Watch the WDK-style workflow timeline.
+6. Review the dashboard: score, summary, market hypotheses, competitors, moat, risks, evidence cards, and founder questions.
+7. Submit feedback such as:
+
+```txt
+The questions are too generic. Focus more on technical defensibility, distribution, and data advantage.
+```
+
+8. Re-run with learned context and compare sharper questions.
+
+## Fallback Behavior
+
+- If Bright Data MCP is unavailable, ScoutLoop evaluates the provided URL/pitch/uploaded text and shows a warning.
+- If v0 inference fails, ScoutLoop returns a conservative structured fallback instead of crashing.
+- If WDK cannot start locally, `/api/scoutloop/evaluate` falls back to direct evaluation.
+- If Mubit SDK/API behavior is unavailable, feedback lessons are stored in Neon/local fallback memory.
+
+## Sponsor Tech Visibility
+
+The ScoutLoop dashboard includes visible badges for:
+
+- v0 inference
+- WDK durable workflow
+- Bright Data evidence
+- Mubit learning
+- Neon Postgres
+- Vercel-ready
+
+## Deployment
+
+This repo is Vercel-ready but intentionally not deployed by this agent run. Before deploying, add the required env vars in Vercel and run:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+```
+
+Then deploy only when explicitly requested.

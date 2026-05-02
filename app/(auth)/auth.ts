@@ -37,6 +37,12 @@ export const {
   signOut,
 } = NextAuth({
   ...authConfig,
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    (process.env.NODE_ENV === "development"
+      ? "scoutloop-development-auth-secret"
+      : undefined),
   providers: [
     Credentials({
       credentials: {
