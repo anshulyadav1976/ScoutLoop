@@ -43,7 +43,7 @@ type ResponseOutputMessage = {
   }>;
 };
 
-function extractFromResponse(output: OpenAI.Responses.ResponseOutput[]): {
+function extractFromResponse(output: OpenAI.Responses.ResponseOutputItem[]): {
   text: string;
   citations: Array<{ url: string; title: string }>;
 } {

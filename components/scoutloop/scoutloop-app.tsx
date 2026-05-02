@@ -23,6 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ReportModeToggle,
+  type ReportMode,
+} from "@/components/scoutloop/report-mode-toggle";
+import { RoastDashboard } from "@/components/scoutloop/roast-report";
+import {
   evaluationModes,
   quickFeedbackOptions,
   SCOUTLOOP_MAX_TEXT_FILE_BYTES,
@@ -110,6 +115,7 @@ export function ScoutLoopApp() {
   const [selectedFeedback, setSelectedFeedback] = useState<string[]>([]);
   const [customFeedback, setCustomFeedback] = useState("");
   const [storedLesson, setStoredLesson] = useState("");
+  const [reportMode, setReportMode] = useState<ReportMode>("roast");
 
   const timeline = useMemo(
     () =>
@@ -332,9 +338,8 @@ export function ScoutLoopApp() {
                 ScoutLoop
               </h1>
               <p className="mt-3 max-w-2xl text-muted-foreground">
-                Dashboard-first startup and hackathon evaluation with durable
-                workflow progress, evidence cards, scoring, and evaluator
-                feedback memory.
+                Evidence-backed due diligence with a tiny knife. Durable
+                workflow, web evidence, scoring, and evaluator feedback memory.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-md lg:justify-end">
@@ -492,7 +497,24 @@ export function ScoutLoopApp() {
 
           {evaluation ? (
             <>
-              <EvaluationDashboard evaluation={evaluation} />
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                    {reportMode === "roast"
+                      ? "Startup Roast Report"
+                      : "Clean Evaluation Report"}
+                  </p>
+                </div>
+                <ReportModeToggle
+                  mode={reportMode}
+                  onChange={setReportMode}
+                />
+              </div>
+              {reportMode === "roast" ? (
+                <RoastDashboard evaluation={evaluation} />
+              ) : (
+                <EvaluationDashboard evaluation={evaluation} />
+              )}
               <FeedbackPanel
                 customFeedback={customFeedback}
                 evaluation={evaluation}
