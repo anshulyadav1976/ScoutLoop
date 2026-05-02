@@ -4,6 +4,11 @@ import { guestRegex, isDevelopmentEnvironment } from "./lib/constants";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL(`${base}/scoutloop`, request.url));
+  }
 
   if (pathname.startsWith("/ping")) {
     return new Response("pong", { status: 200 });
@@ -21,13 +26,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const authSecret =
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    (isDevelopmentEnvironment
+      ? "scoutloop-development-auth-secret"
+      : undefined);
+
+  if (!authSecret) {
+    return NextResponse.redirect(new URL(`${base}/scoutloop`, request.url));
+  }
+
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET,
+    secret: authSecret,
     secureCookie: !isDevelopmentEnvironment,
   });
-
-  const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
   if (!token) {
     const redirectUrl = encodeURIComponent(new URL(request.url).pathname);

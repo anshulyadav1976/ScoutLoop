@@ -10,27 +10,51 @@ function getBrightDataKey() {
   return process.env.BRIGHT_DATA_API_KEY || process.env.BRIGHTDATA_API_KEY;
 }
 
+function mcpUrlHasToken(mcpUrl?: string) {
+  if (!mcpUrl) {
+    return false;
+  }
+
+  try {
+    return Boolean(new URL(mcpUrl).searchParams.get("token"));
+  } catch {
+    return false;
+  }
+}
+
+function getBrightDataHeaders(mcpUrl: string, apiKey?: string) {
+  const headers: Record<string, string> = {
+    Accept: "application/json, text/event-stream",
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey && !mcpUrlHasToken(mcpUrl)) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  return headers;
+}
+
 export async function searchWeb(query: string): Promise<SearchResult[]> {
   const mcpUrl = process.env.BRIGHT_DATA_MCP_URL;
   const apiKey = getBrightDataKey();
+  const hasTokenInUrl = mcpUrlHasToken(mcpUrl);
 
   console.log("[ScoutLoop][BrightData] search:start", {
     query,
     hasMcpUrl: Boolean(mcpUrl),
     hasApiKey: Boolean(apiKey),
+    hasTokenInUrl,
   });
 
-  if (!(mcpUrl && apiKey)) {
+  if (!(mcpUrl && (apiKey || hasTokenInUrl))) {
     console.warn("[ScoutLoop][BrightData] search:skipped missing config");
     throw new Error("Bright Data MCP URL is not configured.");
   }
 
   const response = await fetch(mcpUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: getBrightDataHeaders(mcpUrl, apiKey),
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: crypto.randomUUID(),
@@ -68,24 +92,23 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
 export async function scrapeMarkdown(url: string): Promise<ScrapedPage> {
   const mcpUrl = process.env.BRIGHT_DATA_MCP_URL;
   const apiKey = getBrightDataKey();
+  const hasTokenInUrl = mcpUrlHasToken(mcpUrl);
 
   console.log("[ScoutLoop][BrightData] scrape:start", {
     url,
     hasMcpUrl: Boolean(mcpUrl),
     hasApiKey: Boolean(apiKey),
+    hasTokenInUrl,
   });
 
-  if (!(mcpUrl && apiKey)) {
+  if (!(mcpUrl && (apiKey || hasTokenInUrl))) {
     console.warn("[ScoutLoop][BrightData] scrape:skipped missing config");
     throw new Error("Bright Data MCP URL is not configured.");
   }
 
   const response = await fetch(mcpUrl, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: getBrightDataHeaders(mcpUrl, apiKey),
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: crypto.randomUUID(),
