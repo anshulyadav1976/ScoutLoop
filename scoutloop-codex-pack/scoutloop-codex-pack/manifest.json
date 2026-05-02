@@ -1,0 +1,42 @@
+{
+  "name": "scoutloop-codex-pack",
+  "version": "1.0.0",
+  "created_for": "Vercel Zero to Agent hackathon",
+  "base_repo": "https://github.com/vercel/chatbot",
+  "primary_stack": [
+    "Next.js App Router",
+    "Vercel Chatbot Template",
+    "Vercel AI SDK",
+    "v0 Model API",
+    "Vercel Workflow / WDK",
+    "Bright Data MCP",
+    "Mubit",
+    "shadcn/ui",
+    "Vercel deployment"
+  ],
+  "required_files": [
+    ".env.example.scoutloop",
+    "README.md",
+    "agents.md",
+    "docs/ai-sdk-v0.md",
+    "docs/architecture.md",
+    "docs/brightdata-mcp.md",
+    "docs/dashboard-ui.md",
+    "docs/data-model.md",
+    "docs/demo-script.md",
+    "docs/deployment.md",
+    "docs/env-vars.md",
+    "docs/implementation-notes.md",
+    "docs/mubit-memory.md",
+    "docs/product-brief.md",
+    "docs/repo-bootstrap.md",
+    "docs/scoring-rubric.md",
+    "docs/submission-copy.md",
+    "docs/tech-references.md",
+    "docs/test-strategy.md",
+    "docs/wdk-workflow.md",
+    "plan.md",
+    "prompts/evaluator-feedback-to-lesson.md",
+    "prompts/scoutloop-system-prompt.md"
+  ]
+}
