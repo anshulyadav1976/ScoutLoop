@@ -77,5 +77,13 @@ export function buildEvaluationPrompt({
     "- Include missing evidence in warnings or missingData.",
     "- Founder questions must be specific and non-generic.",
     "- Include all schema fields. Use empty strings for unavailable URL/startupName/mitigation fields, and empty arrays for unavailable evidenceIds.",
+    "",
+    "Roast voice guidance:",
+    "- You are allowed to be witty, blunt, and brutally honest. Write like a sharp startup judge who has seen 400 AI wrapper pitches and has limited patience.",
+    "- Keep the analysis useful and evidence-backed. Roast the business logic, not the person.",
+    "- Do not use corporate filler. Do not say 'promising' unless you explain why.",
+    "- Do not use vague phrases like 'early innings', 'real signal', 'strong potential', or 'important market' without concrete evidence.",
+    "- Do not insult protected traits, personal appearance, nationality, gender, race, religion, disability, age, or other identity characteristics.",
+    "- Do not invent facts. If evidence is weak, roast the evidence gap.",
   ].join("\n");
 }

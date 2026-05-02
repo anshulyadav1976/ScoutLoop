@@ -16,6 +16,8 @@ export type RoastSection = {
   badge: string;
   score: number;
   roast: string;
+  usefulTruth: string;
+  improve: string;
   insight: string;
   confidence: Confidence;
 };
@@ -35,20 +37,36 @@ export type RoastReport = {
 };
 
 export function scoreToThreatLabel(score: number): string {
-  if (score < 3) { return "Slide Deck in Witness Protection"; }
-  if (score < 5) { return "Interesting, But Held Together With Duct Tape"; }
-  if (score < 7) { return "Potentially Dangerous If They Learn Distribution"; }
-  if (score < 8.5) { return "Actually Cooking"; }
+  if (score < 3) {
+    return "Slide Deck in Witness Protection";
+  }
+  if (score < 5) {
+    return "Interesting, But Held Together With Duct Tape";
+  }
+  if (score < 7) {
+    return "Potentially Dangerous If They Learn Distribution";
+  }
+  if (score < 8.5) {
+    return "Actually Cooking";
+  }
   return "Investor Group Chat Emergency";
 }
 
 export function scoreToThreatIntensity(
   score: number
 ): RoastReport["threatIntensity"] {
-  if (score < 3) { return "critical"; }
-  if (score < 5) { return "high"; }
-  if (score < 7) { return "medium"; }
-  if (score < 8.5) { return "low"; }
+  if (score < 3) {
+    return "critical";
+  }
+  if (score < 5) {
+    return "high";
+  }
+  if (score < 7) {
+    return "medium";
+  }
+  if (score < 8.5) {
+    return "low";
+  }
   return "safe";
 }
 
@@ -57,187 +75,15 @@ function findScorecardScore(
   keywords: string[]
 ): number | undefined {
   const item = evaluation.scorecard.find((s) =>
-    keywords.some((kw) =>
-      s.category.toLowerCase().includes(kw.toLowerCase())
-    )
+    keywords.some((kw) => s.category.toLowerCase().includes(kw.toLowerCase()))
   );
   return item?.score;
 }
 
-function problemRoast(
-  score: number,
-  confidence: Confidence,
-  mode: ScoutLoopEvaluation["mode"]
-): string {
-  if (confidence === "low") {
-    return "The problem description has strong TED Talk energy but thin proof. Without evidence of frequency, cost, or urgency, this is a hypothesis wearing a pitch deck.";
-  }
-  if (score >= 8) {
-    return mode === "hackathon_judge"
-      ? "The pain is real and the build addresses it. Judges will nod aggressively."
-      : "This is a genuine wound, not a LinkedIn thought-leader hallucination. Rare.";
-  }
-  if (score >= 6) {
-    return "The problem is real but the pitch is describing it like a documentary narrated over a fog machine. The pain needs sharper proof.";
-  }
-  if (score >= 4) {
-    return "This problem is either a bleeding wound or an inconvenience depending on who you ask. The evidence isn't sure yet either.";
-  }
-  return "The problem statement is doing its best. Unfortunately, without urgency, frequency, or a paying customer quote, it's more of a medium-priority to-do list item.";
-}
-
-function marketRoast(
-  confidence: Confidence,
-  tamHypothesis: string
-): string {
-  const bigNumbers = /\$[\d]+[BbMm]|\d+[BbMm]\s*market|billion|trillion/i.test(
-    tamHypothesis
-  );
-
-  if (confidence === "low") {
-    return "The TAM is doing that thing where it puts on sunglasses indoors. The market exists — the sizing evidence is giving 'we Googled it five minutes before the pitch.'";
-  }
-  if (confidence === "high" && bigNumbers) {
-    return "Market sizing is actually grounded. This is unusual. The SOM is the adult in the room. TAM is the motivational speaker. SAM is doing its best.";
-  }
-  if (bigNumbers) {
-    return "There is a large market. Whether this team captures even a rounding error of it is the real question. SOM needs to be the conversation, not TAM.";
-  }
-  return "The market hypothesis is here. It's trying. Medium confidence means 'we have a thesis but the evidence is still getting dressed.'";
-}
-
-function competitorRoast(
-  competitors: ScoutLoopEvaluation["competitors"],
-  moat: string[]
-): string {
-  const direct = competitors.filter((c) => c.type === "direct").length;
-  const hasWeak = moat.length < 2;
-
-  if (direct === 0) {
-    return "Either there are no direct competitors, or they haven't been found yet. Either way, the 'do nothing' competitor is currently winning by default.";
-  }
-  if (direct >= 3 && hasWeak) {
-    return `${direct} direct competitors and the moat is not yet a castle. It's more of a decorative puddle with a 'private property' sign. Distribution or data advantage is urgently needed.`;
-  }
-  if (direct >= 3) {
-    return `${direct} direct competitors. The field is crowded. 'We use AI' is not a moat unless the strategy is spiritual warfare. The differentiation better be real.`;
-  }
-  return "There are competitors. Several of them have been doing this longer. The moat cannot just be 'better UX' unless the UX is genuinely three standard deviations above average.";
-}
-
-function moatRoast(
-  moat: string[],
-  differentiation: string[],
-  score: number,
-  confidence: Confidence
-): string {
-  if (confidence === "low") {
-    return "The moat is currently theoretical. If OpenAI ships this as a feature next Tuesday, the question is: what survives? That answer needs to be in the pitch, not the imagination.";
-  }
-  const total = moat.length + differentiation.length;
-  if (total >= 5 && score >= 7) {
-    return "There is an actual moat here. Data advantage, workflow lock-in, or genuine technical differentiation — at least one of these is doing real work.";
-  }
-  if (total >= 3) {
-    return "There is a possible moat forming. It needs time, data, or distribution to harden into something that makes a competitor sweat. Right now it's a promising trench.";
-  }
-  return "The moat is more of a decorative puddle. Defensibility needs one of: proprietary data, workflow lock-in, brand/community, or distribution advantage. Pick one and go hard.";
-}
-
-function distributionRoast(
-  distribution: string,
-  score: number,
-  confidence: Confidence
-): string {
-  const vibes =
-    /post|content|seo|organic|word.of.mouth|community|linkedin|twitter|x\.com/i.test(
-      distribution
-    );
-
-  if (confidence === "low") {
-    return "Distribution plan currently has 'post on LinkedIn and pray' energy. The product might be great. Getting people who care before the runway evaporates is the actual game.";
-  }
-  if (score >= 7) {
-    return "The distribution thinking is sharper than average. There is a real acquisition theory here, not just vibes and hope.";
-  }
-  if (vibes) {
-    return "The distribution plan is heavy on organic and community. That can work. It just needs a specific ICP, a repeatable channel, and a timeline that isn't 'eventually.'";
-  }
-  return "Product is not the problem. Finding people who care about it before the runway evaporates is the entire game. The distribution theory needs more than one channel.";
-}
-
-function tractionRoast(
-  signals: string[],
-  score: number,
-  confidence: Confidence,
-  mode: ScoutLoopEvaluation["mode"]
-): string {
-  if (mode === "hackathon_judge") {
-    if (signals.length === 0) {
-      return "For a hackathon build, traction = demo that works and a real problem solved. The jury is still out on whether this clears that bar.";
-    }
-    return "There are signals that this works and people care. That's what hackathon judges want to see. Show the demo, not the roadmap.";
-  }
-  if (confidence === "low" || signals.length === 0) {
-    return "Traction signals are not screaming 'shut up and take my money.' Public proof is thin. The vibes are doing cardio while the data is still asleep.";
-  }
-  if (score >= 7) {
-    return "There is actual proof of life here. Customers exist, usage is happening, or revenue is real. This is the section that makes the rest of the pitch credible.";
-  }
-  if (signals.length >= 2) {
-    return "Traction exists in the early innings. Present but not yet compelling. The story is 'we have signal' not 'we have momentum.' That's a gap to close fast.";
-  }
-  return "Traction signals are technically present. They are doing their best. Judges will want specifics: numbers, retention, usage frequency, or someone paying actual money.";
-}
-
-function riskRoast(
-  risks: ScoutLoopEvaluation["risks"],
-  score: number
-): string {
-  const highRisks = risks.filter((r) => r.severity === "high");
-  const names = highRisks
-    .slice(0, 2)
-    .map((r) => r.risk.split(" ").slice(0, 4).join(" "))
-    .join(" and ");
-
-  if (highRisks.length === 0 && score >= 7) {
-    return "Risk profile is manageable. No single goblin is large enough to end the game. The main risk at this stage is execution, which is always the main risk.";
-  }
-  if (highRisks.length >= 2) {
-    return `The main risk goblins are hiding in ${names || "distribution and defensibility"}. They are wearing fake moustaches and hoping no one asks about them in the Q&A.`;
-  }
-  return `There are risks. ${highRisks.length ? `The high-severity one around ${names} needs mitigation before it graduates from 'concern' to 'crisis.'` : "They are being managed but not fully mitigated. Every startup has goblins — the question is which ones eat the company."}`;
-}
-
-function finalVerdictPunchline(
-  score: number,
-  moat: string[],
-  distribution: string,
-  tractionSignals: string[],
-  mode: ScoutLoopEvaluation["mode"]
-): string {
-  if (mode === "hackathon_judge") {
-    if (score >= 7.5) { return "Strong hackathon build. Real problem, working demo, post-hackathon potential is visible."; }
-    if (score >= 5) { return "Good demo. Needs sharper problem framing and a clearer 'what next' to win judges over."; }
-    return "Interesting direction. The build needs more evidence the problem is real and the solution works end-to-end.";
-  }
-
-  const weakMoat = moat.length < 2;
-  const weakDistrib =
-    distribution.length < 80 ||
-    /vague|unclear|tbd|later|eventually/i.test(distribution);
-  const weakTraction = tractionSignals.length < 2;
-
-  if (score >= 8.5) { return "Fundable. Rare enough to say out loud."; }
-  if (score >= 7 && !weakMoat) { return "Fundable but needs sharper distribution proof before the next raise."; }
-  if (score >= 7 && weakDistrib) { return "Strong product, weak distribution plan. Fix the go-to-market and this is a different conversation."; }
-  if (score >= 5 && weakTraction && weakMoat) { return "Interesting thesis, both moat and traction need to catch up. The idea is not the problem."; }
-  if (score >= 5) { return "Interesting idea in a real market. Dangerous if the founder can figure out distribution before competitors do."; }
-  return "Not yet a business. Could become one. Needs proof-of-pain, a real customer, and a distribution theory that isn't 'build it and they will come.'";
-}
-
 function bestThing(evaluation: ScoutLoopEvaluation): string {
-  const topItem = [...evaluation.scorecard].sort((a, b) => b.score - a.score)[0];
+  const topItem = [...evaluation.scorecard].sort(
+    (a, b) => b.score - a.score
+  )[0];
   if (topItem && topItem.score >= 7) {
     return `${topItem.category}: ${topItem.explanation}`;
   }
@@ -252,7 +98,9 @@ function bestThing(evaluation: ScoutLoopEvaluation): string {
 
 function biggestConcern(evaluation: ScoutLoopEvaluation): string {
   const highRisk = evaluation.risks.find((r) => r.severity === "high");
-  if (highRisk) { return highRisk.risk; }
+  if (highRisk) {
+    return highRisk.risk;
+  }
 
   const bottomItem = [...evaluation.scorecard].sort(
     (a, b) => a.score - b.score
@@ -268,7 +116,9 @@ function fastestWayToImprove(evaluation: ScoutLoopEvaluation): string {
   const bottomItem = [...evaluation.scorecard].sort(
     (a, b) => a.score - b.score
   )[0];
-  if (!bottomItem) { return "Add more customer evidence, distribution channels, and traction signals."; }
+  if (!bottomItem) {
+    return "Add more customer evidence, distribution channels, and traction signals.";
+  }
 
   const cat = bottomItem.category.toLowerCase();
   if (cat.includes("traction") || cat.includes("revenue")) {
@@ -286,10 +136,362 @@ function fastestWayToImprove(evaluation: ScoutLoopEvaluation): string {
   return `Improve ${bottomItem.category}: ${bottomItem.explanation}`;
 }
 
+type RoastCopy = {
+  roast: string;
+  usefulTruth: string;
+  improve: string;
+};
+
+const bannedRoastPhrases = [
+  "early innings",
+  "real signal",
+  "strong potential",
+  "compelling opportunity",
+  "important market",
+  "robust",
+  "leverage",
+  "unlock",
+  "delve",
+  "landscape",
+  "not fully cooked",
+  "appears to be",
+  "it is worth noting",
+  "this suggests",
+  "could potentially",
+  "the story is",
+  "genuine wound",
+  "thought-leader hallucination",
+  "fake moustache",
+];
+
+const questionRewrites: Record<string, string> = {
+  moat: "If OpenAI, LangChain, or a cloud provider copies your top 3 features, what is still hard to replicate?",
+  distribution:
+    "If your first 100 users love this but zero enterprises buy it, what broke: product, trust, pricing, or distribution?",
+  competition:
+    "Which competitor scares you most, and what do you know that they are too big, slow, or distracted to notice?",
+  traction:
+    "What proof do you have that users are not just curious, but actually dependent?",
+  technical:
+    "Which technical claim survives contact with production traffic, angry users, and a security review?",
+  problem:
+    "What painful workflow makes buyers say 'fine, take the budget' instead of 'interesting, let's circle back'?",
+  market:
+    "Which tiny beachhead is real enough to sell into before the TAM spreadsheet starts doing circus tricks?",
+  risk: "What is the one risk that kills this company if you pretend it is just a roadmap item?",
+  founder_quality:
+    "What have you learned that a better-funded competitor will only discover after wasting six months?",
+};
+
+function cleanBannedPhrases(text: string) {
+  return bannedRoastPhrases.reduce(
+    (current, phrase) =>
+      current.replace(new RegExp(phrase, "gi"), "specific proof"),
+    text
+  );
+}
+
+export function sharpenRoastCopy(text: string) {
+  return cleanBannedPhrases(text)
+    .replace(/\bpromising\b/gi, "credible if the evidence holds")
+    .replace(/\bsolution\b/gi, "product")
+    .replace(/\busers may\b/gi, "users might")
+    .replace(/\bthere is an opportunity\b/gi, "there is a shot")
+    .trim();
+}
+
+function hasEvidence(evaluation: ScoutLoopEvaluation, words: string[]) {
+  const haystack = [
+    evaluation.summary,
+    evaluation.problem,
+    evaluation.targetCustomer,
+    evaluation.businessModel,
+    evaluation.distribution,
+    evaluation.marketSizing.tamHypothesis,
+    evaluation.marketSizing.samHypothesis,
+    evaluation.marketSizing.somHypothesis,
+    ...evaluation.evidenceCards.map((card) => card.snippet),
+    ...evaluation.tractionSignals,
+    ...evaluation.differentiation,
+    ...evaluation.moat,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return words.some((word) => haystack.includes(word));
+}
+
+function topCompetitorNames(evaluation: ScoutLoopEvaluation) {
+  return evaluation.competitors
+    .slice(0, 4)
+    .map((competitor) => competitor.name)
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
+  label: string;
+  roast: string;
+} {
+  const score = evaluation.overallScore;
+  const hasAi = hasEvidence(evaluation, ["ai", "agent", "model", "llm"]);
+  const weakDistribution =
+    evaluation.distribution.length < 90 ||
+    /unclear|tbd|eventually|organic|community/i.test(evaluation.distribution);
+  const weakMoat = evaluation.moat.length < 2;
+
+  if (score >= 8.5) {
+    return {
+      label: "Investor Group Chat Emergency",
+      roast:
+        "This is not vaporware. Annoying, because I wanted to bully it properly. The company-shaped object is visible, and the score is high enough to make lazy competitors sweat.",
+    };
+  }
+  if (score >= 7) {
+    return {
+      label: "Actually Cooking",
+      roast: weakDistribution
+        ? "The idea has teeth. The go-to-market plan is still chewing crayons, but the product logic is not embarrassing."
+        : "This is cooking, and for once the kitchen is not just a Notion doc with a pricing page. Still needs harder proof before anyone gets cocky.",
+    };
+  }
+  if (score >= 5) {
+    return {
+      label: "Company-Shaped Object Detected",
+      roast: weakMoat
+        ? "Not a guaranteed winner, but definitely not a Notion doc in a trench coat. The moat needs to stop whispering and start punching."
+        : "There is an actual company-shaped object here. The pitch still needs a shower and a tighter argument.",
+    };
+  }
+  if (score >= 3) {
+    return {
+      label: "Duct Tape With a Domain Name",
+      roast:
+        "The concept is alive, technically. Right now it is being held together by optimism, screenshots, and the founder's ability to explain around missing proof.",
+    };
+  }
+  return {
+    label: hasAi
+      ? "AI Wrapper Court Appearance"
+      : "Slide Deck in Witness Protection",
+    roast:
+      "This needs more than confidence and a URL. The evidence is too thin to roast the startup properly, so the evidence gap gets dragged instead.",
+  };
+}
+
+export function generateProblemRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastCopy {
+  const isRegulated = hasEvidence(evaluation, [
+    "regulated",
+    "compliance",
+    "legal",
+    "audit",
+    "security",
+  ]);
+  const isHackathon = evaluation.mode === "hackathon_judge";
+
+  return {
+    roast: isRegulated
+      ? "Enterprises absolutely do hate unpredictable AI agents. Legal, compliance, and security teams see autonomous agents and immediately start hearing boss music."
+      : isHackathon
+        ? "The problem is understandable, which already puts it ahead of half the demo table. The danger is solving a judge-friendly inconvenience instead of a user-punching-the-wall problem."
+        : "This problem exists. Customers are probably annoyed. The question is whether they are annoyed enough to pay, not just nod aggressively on a sales call.",
+    usefulTruth: `The pain claim is: ${evaluation.problem} Target customer: ${evaluation.targetCustomer}`,
+    improve:
+      "Show named workflows, who owns the budget, and what breaks today without this product.",
+  };
+}
+
+export function generateMarketRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastCopy {
+  const lowConfidence = evaluation.marketSizing.confidence === "low";
+  const bigCategory = /billion|trillion|\$|enterprise|platform|ai/i.test(
+    evaluation.marketSizing.tamHypothesis
+  );
+
+  return {
+    roast: lowConfidence
+      ? "The market is large, but TAM is currently doing influencer math. Big category, real demand, and still too much fog machine attached to the spreadsheet."
+      : bigCategory
+        ? "TAM is wearing sunglasses indoors. SAM is slightly more sober. SOM is where the adults should focus."
+        : "The market exists, but the sizing needs a smaller knife. Stop trying to hug the whole category and pick the buyer who bleeds first.",
+    usefulTruth: `TAM: ${evaluation.marketSizing.tamHypothesis} SAM: ${evaluation.marketSizing.samHypothesis} SOM: ${evaluation.marketSizing.somHypothesis}`,
+    improve:
+      "Narrow the first beachhead to one buyer, one painful workflow, and one believable spend line.",
+  };
+}
+
+export function generateCompetitorRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastCopy {
+  const names = topCompetitorNames(evaluation);
+  const count = evaluation.competitors.length;
+  const direct = evaluation.competitors.filter(
+    (competitor) => competitor.type === "direct"
+  ).length;
+
+  return {
+    roast:
+      count === 0
+        ? "No competitors found is not a victory lap. It either means the category is weird, the research is thin, or the do-nothing competitor is quietly eating lunch."
+        : direct >= 3
+          ? "The category is crowded. There are enough agent frameworks here to form a small government, and some of them have money, distribution, and employees who sleep under their desks."
+          : "Competitors exist, and the scary part is not that they exist. The scary part is customers can ignore all of you until a VP gets embarrassed.",
+    usefulTruth: names
+      ? `Relevant competitors and alternatives identified: ${names}. ScoutLoop found ${count} competitive entries, including ${direct} direct competitor(s).`
+      : "ScoutLoop did not find strong competitor coverage, so this section needs more evidence before claiming a clean lane.",
+    improve:
+      "Make the comparison table brutal: reliability, auditability, deployment speed, buyer trust, and why users switch now.",
+  };
+}
+
+export function generateMoatRoast(evaluation: ScoutLoopEvaluation): RoastCopy {
+  const moatText = [...evaluation.moat, ...evaluation.differentiation].join(
+    " "
+  );
+  const hasOpenSource = /open.source|github|sdk|developer/i.test(moatText);
+  const hasControl = /control|approval|audit|workflow|runtime|compliance/i.test(
+    moatText
+  );
+
+  return {
+    roast: hasOpenSource
+      ? "Open-source SDK plus cloud platform can be a moat, but only if adoption turns into distribution, not just GitHub stars and dopamine."
+      : hasControl
+        ? "The moat is not fake, but it is currently wearing a high-vis jacket and asking to be inspected. Control, workflow lock-in, and trust can compound, but only if customers actually build around them."
+        : "If OpenAI ships this next Tuesday, what survives? That question should be tattooed on the roadmap.",
+    usefulTruth:
+      moatText ||
+      "ScoutLoop did not find enough concrete moat evidence. That is not fatal, but it does mean the defensibility claim is currently doing unpaid theater.",
+    improve:
+      "Show retention, integrations, hosted usage, proprietary data, production workloads, or anything painful to rip out.",
+  };
+}
+
+export function generateDistributionRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastCopy {
+  const developerLed = hasEvidence(evaluation, [
+    "developer",
+    "sdk",
+    "github",
+    "open-source",
+    "api",
+  ]);
+  const enterprise = hasEvidence(evaluation, [
+    "enterprise",
+    "regulated",
+    "compliance",
+    "procurement",
+  ]);
+
+  return {
+    roast: enterprise
+      ? "Enterprise sales into regulated industries means long cycles, procurement goblins, and security questionnaires from hell. The product can be right and still spend six months getting hugged to death by process."
+      : developerLed
+        ? "Developer-first distribution can work. It can also turn into 2,000 GitHub stars and a bank account making dial-up noises."
+        : "The product makes sense. The distribution plan is where the floorboards start creaking.",
+    usefulTruth: `Business model: ${evaluation.businessModel} Distribution: ${evaluation.distribution}`,
+    improve:
+      "Define whether the motion is open-source-led, enterprise-led, partner-led, or founder-sales-led. Pick the first channel and name the buyer.",
+  };
+}
+
+export function generateTractionRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastCopy {
+  const hasFunding = hasEvidence(evaluation, ["funding", "raised", "seed"]);
+  const hasUsage = hasEvidence(evaluation, [
+    "customer",
+    "users",
+    "revenue",
+    "pilot",
+    "production",
+    "retention",
+  ]);
+
+  return {
+    roast:
+      hasFunding && !hasUsage
+        ? "Funding is proof that investors picked up the phone. It is not proof that customers picked up the credit card."
+        : hasUsage
+          ? "There is proof of life, but the next question is appetite. Curiosity is cute. Dependency is the invoice-shaped version."
+          : "Public traction is thin. Right now the evidence is whispering when it needs to start yelling.",
+    usefulTruth:
+      evaluation.tractionSignals.length > 0
+        ? evaluation.tractionSignals.join(" ")
+        : "ScoutLoop did not find concrete public proof of usage, revenue, retention, production deployments, or paid pilots.",
+    improve:
+      "Show design partners, active developers, paid pilots, production workloads, retention, or before-and-after customer pain.",
+  };
+}
+
+export function generateRiskRoast(evaluation: ScoutLoopEvaluation): RoastCopy {
+  const highRisks = evaluation.risks.filter((risk) => risk.severity === "high");
+  const topRisk = highRisks[0] ?? evaluation.risks[0];
+  const infraRisk = hasEvidence(evaluation, [
+    "infrastructure",
+    "platform",
+    "agent",
+    "framework",
+    "cloud",
+  ]);
+
+  return {
+    roast: infraRisk
+      ? "This could become infrastructure. It could also become a feature in someone else's platform. That gap is where the blood pressure lives."
+      : "The biggest risk is that the category moves faster than the company can explain why it matters.",
+    usefulTruth: topRisk
+      ? `${topRisk.severity.toUpperCase()} risk: ${topRisk.risk}${topRisk.mitigation ? ` Mitigation: ${topRisk.mitigation}` : ""}`
+      : "ScoutLoop did not identify a sharp risk list, which usually means the evidence is too thin, not that the startup is magically safe.",
+    improve:
+      "Show measurable reliability gains, switching costs, compliance outcomes, or proof that a larger platform cannot flatten the wedge.",
+  };
+}
+
+export function generateFinalVerdictRoast(
+  evaluation: ScoutLoopEvaluation
+): RoastReport["finalVerdict"] {
+  const score = evaluation.overallScore;
+  const hasAi = hasEvidence(evaluation, ["ai", "agent", "model", "llm"]);
+  const best = bestThing(evaluation);
+  const concern = biggestConcern(evaluation);
+
+  let punchline: string;
+  if (score >= 8) {
+    punchline =
+      "Fundable, but the next raise needs harder proof than 'the category is scary and large.'";
+  } else if (score >= 6.5) {
+    punchline = hasAi
+      ? "This is not a clown car. It is a serious startup. But the moat and distribution story need to hit harder."
+      : "The product has a reason to exist. Now it needs a reason to win.";
+  } else if (score >= 5) {
+    punchline =
+      "Promising is banned, so let's say this instead: the idea has a pulse, but the proof needs to start paying rent.";
+  } else {
+    punchline =
+      "The pitch is not dead, but it is on a folding chair outside the investor meeting. Bring stronger evidence.";
+  }
+
+  return {
+    punchline: sharpenRoastCopy(punchline),
+    bestThing: sharpenRoastCopy(best),
+    biggestConcern: sharpenRoastCopy(concern),
+    fastestWayToImprove: sharpenRoastCopy(fastestWayToImprove(evaluation)),
+  };
+}
+
+export function sharpenFounderQuestion(
+  question: ScoutLoopEvaluation["founderQuestions"][number]
+) {
+  return questionRewrites[question.category] ?? question.question;
+}
+
 export function generateRoastReport(
   evaluation: ScoutLoopEvaluation
 ): RoastReport {
-  const mode = evaluation.mode;
   const overallScore = evaluation.overallScore;
 
   const problemScore =
@@ -309,11 +511,7 @@ export function generateRoastReport(
       "defensib",
     ]) ?? 5;
   const moatScore =
-    findScorecardScore(evaluation, [
-      "moat",
-      "defensib",
-      "differentiat",
-    ]) ?? 5;
+    findScorecardScore(evaluation, ["moat", "defensib", "differentiat"]) ?? 5;
   const distributionScore =
     findScorecardScore(evaluation, [
       "distribution",
@@ -330,8 +528,15 @@ export function generateRoastReport(
       "users",
     ]) ?? 5;
   const riskScore =
-    10 -
-    (findScorecardScore(evaluation, ["risk", "execution"]) ?? 5);
+    10 - (findScorecardScore(evaluation, ["risk", "execution"]) ?? 5);
+  const overallThreat = generateBrutalOverallThreat(evaluation);
+  const problemCopy = generateProblemRoast(evaluation);
+  const marketCopy = generateMarketRoast(evaluation);
+  const competitorCopy = generateCompetitorRoast(evaluation);
+  const moatCopy = generateMoatRoast(evaluation);
+  const distributionCopy = generateDistributionRoast(evaluation);
+  const tractionCopy = generateTractionRoast(evaluation);
+  const riskCopy = generateRiskRoast(evaluation);
 
   const sections: RoastSection[] = [
     {
@@ -340,7 +545,9 @@ export function generateRoastReport(
       badge: "Pain Point Audit",
       score: problemScore,
       confidence: evaluation.marketSizing.confidence,
-      roast: problemRoast(problemScore, evaluation.overallConfidence, mode),
+      roast: problemCopy.roast,
+      usefulTruth: problemCopy.usefulTruth,
+      improve: problemCopy.improve,
       insight: `${evaluation.problem}\n\nTarget customer: ${evaluation.targetCustomer}`,
     },
     {
@@ -349,10 +556,9 @@ export function generateRoastReport(
       badge: "TAM Acrobatics",
       score: marketScore,
       confidence: evaluation.marketSizing.confidence,
-      roast: marketRoast(
-        evaluation.marketSizing.confidence,
-        evaluation.marketSizing.tamHypothesis
-      ),
+      roast: marketCopy.roast,
+      usefulTruth: marketCopy.usefulTruth,
+      improve: marketCopy.improve,
       insight: `TAM: ${evaluation.marketSizing.tamHypothesis}\nSAM: ${evaluation.marketSizing.samHypothesis}\nSOM: ${evaluation.marketSizing.somHypothesis}`,
     },
     {
@@ -361,13 +567,13 @@ export function generateRoastReport(
       badge: "Bloodbath Analysis",
       score: competitorScore,
       confidence: evaluation.overallConfidence,
-      roast: competitorRoast(evaluation.competitors, evaluation.moat),
-      insight: evaluation.competitors
-        .map(
-          (c) =>
-            `${c.name} (${c.type}): ${c.description}`
-        )
-        .join("\n") || "No competitors identified in evidence.",
+      roast: competitorCopy.roast,
+      usefulTruth: competitorCopy.usefulTruth,
+      improve: competitorCopy.improve,
+      insight:
+        evaluation.competitors
+          .map((c) => `${c.name} (${c.type}): ${c.description}`)
+          .join("\n") || "No competitors identified in evidence.",
     },
     {
       id: "moat",
@@ -375,16 +581,14 @@ export function generateRoastReport(
       badge: "Defensibility Check",
       score: moatScore,
       confidence: evaluation.overallConfidence,
-      roast: moatRoast(
-        evaluation.moat,
-        evaluation.differentiation,
-        moatScore,
-        evaluation.overallConfidence
-      ),
-      insight: [
-        ...evaluation.differentiation.map((d) => `Differentiation: ${d}`),
-        ...evaluation.moat.map((m) => `Moat: ${m}`),
-      ].join("\n") || "No moat or differentiation claims identified.",
+      roast: moatCopy.roast,
+      usefulTruth: moatCopy.usefulTruth,
+      improve: moatCopy.improve,
+      insight:
+        [
+          ...evaluation.differentiation.map((d) => `Differentiation: ${d}`),
+          ...evaluation.moat.map((m) => `Moat: ${m}`),
+        ].join("\n") || "No moat or differentiation claims identified.",
     },
     {
       id: "distribution",
@@ -392,11 +596,9 @@ export function generateRoastReport(
       badge: "GTM Reality Check",
       score: distributionScore,
       confidence: evaluation.overallConfidence,
-      roast: distributionRoast(
-        evaluation.distribution,
-        distributionScore,
-        evaluation.overallConfidence
-      ),
+      roast: distributionCopy.roast,
+      usefulTruth: distributionCopy.usefulTruth,
+      improve: distributionCopy.improve,
       insight: `Business model: ${evaluation.businessModel}\n\nDistribution: ${evaluation.distribution}`,
     },
     {
@@ -405,12 +607,9 @@ export function generateRoastReport(
       badge: "Proof of Life",
       score: tractionScore,
       confidence: evaluation.overallConfidence,
-      roast: tractionRoast(
-        evaluation.tractionSignals,
-        tractionScore,
-        evaluation.overallConfidence,
-        mode
-      ),
+      roast: tractionCopy.roast,
+      usefulTruth: tractionCopy.usefulTruth,
+      improve: tractionCopy.improve,
       insight:
         evaluation.tractionSignals.length > 0
           ? evaluation.tractionSignals.map((s) => `• ${s}`).join("\n")
@@ -418,24 +617,22 @@ export function generateRoastReport(
     },
     {
       id: "risks",
-      title: "Risk Goblins",
-      badge: "Goblin Inventory",
+      title: "Risk Blood Pressure",
+      badge: "Risk Audit",
       score: Math.max(0, 10 - riskScore),
       confidence: evaluation.overallConfidence,
-      roast: riskRoast(evaluation.risks, 10 - riskScore),
-      insight: evaluation.risks
-        .map((r) => `[${r.severity.toUpperCase()}] ${r.risk}${r.mitigation ? ` → ${r.mitigation}` : ""}`)
-        .join("\n") || "No specific risks identified.",
+      roast: riskCopy.roast,
+      usefulTruth: riskCopy.usefulTruth,
+      improve: riskCopy.improve,
+      insight:
+        evaluation.risks
+          .map(
+            (r) =>
+              `[${r.severity.toUpperCase()}] ${r.risk}${r.mitigation ? ` → ${r.mitigation}` : ""}`
+          )
+          .join("\n") || "No specific risks identified.",
     },
   ];
-
-  const verdict = finalVerdictPunchline(
-    overallScore,
-    evaluation.moat,
-    evaluation.distribution,
-    evaluation.tractionSignals,
-    mode
-  );
 
   let overallRoast: string;
   if (overallScore >= 8.5) {
@@ -456,16 +653,11 @@ export function generateRoastReport(
   }
 
   return {
-    threatLabel: scoreToThreatLabel(overallScore),
+    threatLabel: overallThreat.label,
     threatIntensity: scoreToThreatIntensity(overallScore),
-    overallRoast,
+    overallRoast: sharpenRoastCopy(overallThreat.roast || overallRoast),
     seriousSummary: evaluation.summary,
     sections,
-    finalVerdict: {
-      punchline: verdict,
-      bestThing: bestThing(evaluation),
-      biggestConcern: biggestConcern(evaluation),
-      fastestWayToImprove: fastestWayToImprove(evaluation),
-    },
+    finalVerdict: generateFinalVerdictRoast(evaluation),
   };
 }

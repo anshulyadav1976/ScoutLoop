@@ -14,8 +14,11 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { generateRoastReport } from "@/lib/scoutloop/roast";
 import type { RoastReport, RoastSection } from "@/lib/scoutloop/roast";
+import {
+  generateRoastReport,
+  sharpenFounderQuestion,
+} from "@/lib/scoutloop/roast";
 import type { ScoutLoopEvaluation } from "@/lib/scoutloop/types";
 
 function classNames(...classes: Array<string | false | undefined>) {
@@ -201,14 +204,35 @@ function RoastSectionCard({ section }: { section: RoastSection }) {
         </div>
       </div>
 
+      <div className="border-t px-4 py-4">
+        <p className="font-semibold text-[10px] text-red-600 uppercase tracking-wider dark:text-red-400">
+          Roast
+        </p>
+        <p className="mt-1 font-semibold text-base leading-relaxed">
+          {section.roast}
+        </p>
+      </div>
+
+      <div className="border-t bg-muted/20 px-4 py-3">
+        <p className="font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+          Useful truth
+        </p>
+        <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+          {section.usefulTruth}
+        </p>
+      </div>
+
       <div className="border-t px-4 py-3">
-        <p className="font-medium text-sm leading-relaxed">{section.roast}</p>
+        <p className="font-semibold text-[10px] text-blue-600 uppercase tracking-wider dark:text-blue-400">
+          Fix this fastest
+        </p>
+        <p className="mt-1 text-sm leading-relaxed">{section.improve}</p>
       </div>
 
       <details className="group border-t">
         <summary className="flex cursor-pointer select-none items-center gap-2 px-4 py-2.5 text-muted-foreground text-xs hover:text-foreground">
           <ArrowRight className="size-3 transition-transform group-open:rotate-90" />
-          Useful insight
+          Source detail
         </summary>
         <div className="border-t bg-muted/30 px-4 py-3 text-muted-foreground text-xs leading-relaxed whitespace-pre-line">
           {section.insight}
@@ -278,7 +302,7 @@ function FounderSweatQuestions({
                       severityColors[q.severity]
                     )}
                   >
-                    {q.question}
+                    {sharpenFounderQuestion(q)}
                   </p>
                   <p className="mt-1 text-muted-foreground text-xs">
                     {q.whyAsk}
@@ -346,10 +370,7 @@ export function RoastDashboard({
 }: {
   evaluation: ScoutLoopEvaluation;
 }) {
-  const report = useMemo(
-    () => generateRoastReport(evaluation),
-    [evaluation]
-  );
+  const report = useMemo(() => generateRoastReport(evaluation), [evaluation]);
 
   return (
     <div className="space-y-4">
@@ -371,10 +392,7 @@ export function RoastDashboard({
 
       <div className="grid gap-4 md:grid-cols-2">
         {report.sections.map((section) => (
-          <RoastSectionCard
-            key={section.id}
-            section={section}
-          />
+          <RoastSectionCard key={section.id} section={section} />
         ))}
       </div>
 

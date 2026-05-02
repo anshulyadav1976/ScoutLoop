@@ -10,16 +10,25 @@
  * text-only mode regardless of which provider is active.
  */
 
-import type { EvidenceBundle, NormalizedScoutLoopInput } from "@/lib/scoutloop/types";
+import type {
+  EvidenceBundle,
+  NormalizedScoutLoopInput,
+} from "@/lib/scoutloop/types";
 
 function getProvider(): "openai" | "brightdata" {
   const explicit = process.env.SCOUTLOOP_EVIDENCE_PROVIDER;
 
-  if (explicit === "brightdata") { return "brightdata"; }
-  if (explicit === "openai") { return "openai"; }
+  if (explicit === "brightdata") {
+    return "brightdata";
+  }
+  if (explicit === "openai") {
+    return "openai";
+  }
 
   // auto: prefer OpenAI if key is available
-  if (process.env.OPENAI_API_KEY) { return "openai"; }
+  if (process.env.OPENAI_API_KEY) {
+    return "openai";
+  }
 
   return "brightdata";
 }
@@ -38,7 +47,10 @@ export async function gatherStartupEvidence(
       return await gatherOpenAI(input);
     } catch (error) {
       const message = error instanceof Error ? error.message : "unknown error";
-      console.warn("[ScoutLoop][Evidence] openai:failed, trying brightdata fallback", { message });
+      console.warn(
+        "[ScoutLoop][Evidence] openai:failed, trying brightdata fallback",
+        { message }
+      );
       const { gatherStartupEvidence: gatherBD } = await import(
         "@/lib/scoutloop/evidence/brightdata"
       );
@@ -54,7 +66,10 @@ export async function gatherStartupEvidence(
     return await gatherBD(input);
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
-    console.warn("[ScoutLoop][Evidence] brightdata:failed, trying openai fallback", { message });
+    console.warn(
+      "[ScoutLoop][Evidence] brightdata:failed, trying openai fallback",
+      { message }
+    );
     const { gatherStartupEvidence: gatherOpenAI } = await import(
       "@/lib/scoutloop/evidence/openai-search"
     );
@@ -62,4 +77,7 @@ export async function gatherStartupEvidence(
   }
 }
 
-export { searchWeb, scrapeMarkdown } from "@/lib/scoutloop/evidence/openai-search";
+export {
+  scrapeMarkdown,
+  searchWeb,
+} from "@/lib/scoutloop/evidence/openai-search";

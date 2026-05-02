@@ -18,15 +18,15 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MessageResponse } from "@/components/ai-elements/message";
+import {
+  type ReportMode,
+  ReportModeToggle,
+} from "@/components/scoutloop/report-mode-toggle";
+import { RoastDashboard } from "@/components/scoutloop/roast-report";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ReportModeToggle,
-  type ReportMode,
-} from "@/components/scoutloop/report-mode-toggle";
-import { RoastDashboard } from "@/components/scoutloop/roast-report";
 import {
   evaluationModes,
   quickFeedbackOptions,
@@ -505,10 +505,7 @@ export function ScoutLoopApp() {
                       : "Clean Evaluation Report"}
                   </p>
                 </div>
-                <ReportModeToggle
-                  mode={reportMode}
-                  onChange={setReportMode}
-                />
+                <ReportModeToggle mode={reportMode} onChange={setReportMode} />
               </div>
               {reportMode === "roast" ? (
                 <RoastDashboard evaluation={evaluation} />

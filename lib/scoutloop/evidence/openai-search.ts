@@ -51,7 +51,9 @@ function extractFromResponse(output: OpenAI.Responses.ResponseOutputItem[]): {
   const citations: Array<{ url: string; title: string }> = [];
 
   for (const item of output) {
-    if (item.type !== "message") { continue; }
+    if (item.type !== "message") {
+      continue;
+    }
 
     const msg = item as unknown as ResponseOutputMessage;
 
