@@ -45,17 +45,14 @@ const accentByIntensity: Record<
   },
 };
 
-function ScoreBar({
-  score,
-  color,
-}: {
-  score: number;
-  color: string;
-}) {
+function ScoreBar({ score, color }: { score: number; color: string }) {
   const width = Math.max(0, Math.min(100, score * 10));
   return (
     <div className="mt-3 h-2 w-full bg-zinc-200">
-      <div className={classNames("h-full", color)} style={{ width: `${width}%` }} />
+      <div
+        className={classNames("h-full", color)}
+        style={{ width: `${width}%` }}
+      />
     </div>
   );
 }
@@ -73,21 +70,39 @@ function RoastHero({
       <p className="font-mono text-[11px] uppercase tracking-[0.55em] text-zinc-500">
         Startup Threat Level
       </p>
-      <div className={classNames("mt-7 font-black text-7xl tracking-tight sm:text-8xl", accent.text)}>
+      <div
+        className={classNames(
+          "mt-7 font-black text-7xl tracking-tight sm:text-8xl",
+          accent.text
+        )}
+      >
         {evaluation.overallScore.toFixed(1)}
       </div>
       <p className="mt-1 font-mono text-lg text-zinc-700">/ 10</p>
       <div className="mx-auto mt-5 max-w-xs">
         <ScoreBar color={accent.bar} score={evaluation.overallScore} />
       </div>
-      <h2 className={classNames("mt-7 font-mono font-bold text-base uppercase tracking-[0.35em]", accent.text)}>
+      <h2
+        className={classNames(
+          "mt-7 font-mono font-bold text-base uppercase tracking-[0.35em]",
+          accent.text
+        )}
+      >
         {report.threatLabel}
       </h2>
       <div className="mt-5 flex flex-wrap justify-center gap-2">
-        <Badge className="border-zinc-300 bg-white text-zinc-700" variant="outline">
-          {evaluation.mode === "startup_judge" ? "Startup Judge" : "Hackathon Judge"}
+        <Badge
+          className="border-zinc-300 bg-white text-zinc-700"
+          variant="outline"
+        >
+          {evaluation.mode === "startup_judge"
+            ? "Startup Judge"
+            : "Hackathon Judge"}
         </Badge>
-        <Badge className="border-zinc-300 bg-white text-zinc-700" variant="outline">
+        <Badge
+          className="border-zinc-300 bg-white text-zinc-700"
+          variant="outline"
+        >
           {evaluation.overallConfidence} confidence
         </Badge>
         {evaluation.startupName ? (

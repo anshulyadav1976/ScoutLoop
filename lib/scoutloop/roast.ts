@@ -62,8 +62,7 @@ const bannedRoastPhrases = [
 ];
 
 const questionRewrites: Record<string, string> = {
-  moat:
-    "If OpenAI, LangChain, or a cloud provider clones your three best features, what is still painfully expensive to copy?",
+  moat: "If OpenAI, LangChain, or a cloud provider clones your three best features, what is still painfully expensive to copy?",
   distribution:
     "If developers star the repo and enterprises still refuse to buy, what broke: trust, procurement, pricing, or the product pretending those are the same problem?",
   competition:
@@ -76,8 +75,7 @@ const questionRewrites: Record<string, string> = {
     "What exact workflow is painful enough that a buyer stops nodding politely and actually opens the budget drawer?",
   market:
     "Which tiny beachhead is real enough to sell into before the TAM spreadsheet starts doing circus tricks?",
-  risk:
-    "What is the one risk that kills this company if the team keeps treating it like a roadmap bullet?",
+  risk: "What is the one risk that kills this company if the team keeps treating it like a roadmap bullet?",
   founder_quality:
     "What have you learned that a better-funded competitor will only discover after lighting six months on fire?",
 };
@@ -169,9 +167,32 @@ function hasEvidence(evaluation: ScoutLoopEvaluation, words: string[]) {
   return words.some((word) => haystack.includes(word.toLowerCase()));
 }
 
+function hasMissingEvidenceLanguage(
+  evaluation: ScoutLoopEvaluation,
+  words: string[]
+) {
+  const haystack = [
+    evaluation.summary,
+    ...evaluation.warnings,
+    ...evaluation.tractionSignals,
+    ...evaluation.evidenceCards.map((card) => card.snippet),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return words.some((word) =>
+    new RegExp(
+      `no (direct |public |clear |concrete |specific )?.{0,35}${word}`,
+      "i"
+    ).test(haystack)
+  );
+}
+
 function compact(text: string, maxLength = 170) {
   const cleaned = text.replace(/\s+/g, " ").trim();
-  return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength - 1)}…` : cleaned;
+  return cleaned.length > maxLength
+    ? `${cleaned.slice(0, maxLength - 1)}…`
+    : cleaned;
 }
 
 function topCompetitorNames(evaluation: ScoutLoopEvaluation) {
@@ -261,7 +282,9 @@ export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
   }
   if (score >= 7) {
     return {
-      label: weakDistribution ? "GREAT PRODUCT, GTM IN A COMA" : "ANNOYINGLY VIABLE",
+      label: weakDistribution
+        ? "GREAT PRODUCT, GTM IN A COMA"
+        : "ANNOYINGLY VIABLE",
       roast: weakDistribution
         ? "The product has teeth. The go-to-market plan is still chewing crayons in the corner, but at least there is an actual business trying to escape."
         : "This is cooking hard enough to be irritating. Still not inevitable; the startup gods love turning 'obvious winner' into 'remember them?' by Q3.",
@@ -269,7 +292,9 @@ export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
   }
   if (score >= 5) {
     return {
-      label: weakMoat ? "REAL STARTUP, FAKE CERTAINTY" : "NOT DEAD, STILL NEEDS RECEIPTS",
+      label: weakMoat
+        ? "REAL STARTUP, FAKE CERTAINTY"
+        : "NOT DEAD, STILL NEEDS RECEIPTS",
       roast: hasAi
         ? "This is not just a Notion doc wearing an AI hoodie. Unfortunately, the proof still has the muscle tone of a wet napkin."
         : "There is a startup in here somewhere. Right now it is buried under assumptions, missing numbers, and a pitch that wants trust before it has earned eye contact.",
@@ -284,7 +309,9 @@ export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
     };
   }
   return {
-    label: hasAi ? "AI WRAPPER COURT APPEARANCE" : "DECK NEEDS WITNESS PROTECTION",
+    label: hasAi
+      ? "AI WRAPPER COURT APPEARANCE"
+      : "DECK NEEDS WITNESS PROTECTION",
     roast:
       "There is not enough evidence to roast the company, so the missing evidence gets dragged into the parking lot instead. Bring proof or bring snacks.",
   };
@@ -324,8 +351,12 @@ export function generateMarketRoast(
   evaluation: ScoutLoopEvaluation
 ): RoastCopy {
   const score =
-    findScorecardScore(evaluation, ["market", "tam", "opportunity", "sizing"]) ??
-    5;
+    findScorecardScore(evaluation, [
+      "market",
+      "tam",
+      "opportunity",
+      "sizing",
+    ]) ?? 5;
   const lowConfidence = evaluation.marketSizing.confidence === "low";
   const broad = /enterprise|platform|infrastructure|developer|ai|agent/i.test(
     evaluation.marketSizing.tamHypothesis
@@ -374,11 +405,12 @@ export function generateCompetitorRoast(
 }
 
 export function generateMoatRoast(evaluation: ScoutLoopEvaluation): RoastCopy {
-  const moatText = [...evaluation.moat, ...evaluation.differentiation].join(" ");
-  const openSource = /open.source|github|sdk|developer/i.test(moatText);
-  const control = /control|approval|audit|workflow|runtime|compliance|trust/i.test(
-    moatText
+  const moatText = [...evaluation.moat, ...evaluation.differentiation].join(
+    " "
   );
+  const openSource = /open.source|github|sdk|developer/i.test(moatText);
+  const control =
+    /control|approval|audit|workflow|runtime|compliance|trust/i.test(moatText);
 
   return {
     roast: openSource
@@ -409,9 +441,10 @@ export function generateDistributionRoast(
     "compliance",
     "procurement",
   ]);
-  const vague = /likely|organic|content|community|developer-led|word.of.mouth/i.test(
-    evaluation.distribution
-  );
+  const vague =
+    /likely|organic|content|community|developer-led|word.of.mouth/i.test(
+      evaluation.distribution
+    );
 
   return {
     roast: enterprise
@@ -431,15 +464,24 @@ export function generateTractionRoast(
   evaluation: ScoutLoopEvaluation
 ): RoastCopy {
   const hasFunding = hasEvidence(evaluation, ["funding", "raised", "seed"]);
-  const hasUsage = hasEvidence(evaluation, [
-    "customer",
-    "users",
-    "revenue",
-    "pilot",
-    "production",
-    "retention",
-    "deployment",
-  ]);
+  const hasUsage =
+    hasEvidence(evaluation, [
+      "customer",
+      "users",
+      "revenue",
+      "pilot",
+      "production",
+      "retention",
+      "deployment",
+    ]) &&
+    !hasMissingEvidenceLanguage(evaluation, [
+      "customer",
+      "user",
+      "revenue",
+      "deployment",
+      "retention",
+      "usage",
+    ]);
 
   return {
     roast:
@@ -528,6 +570,7 @@ export function generateRoastReport(
     ]) ?? 5;
   const competitorScore =
     findScorecardScore(evaluation, [
+      "competition",
       "competitive",
       "competitor",
       "moat",
