@@ -5,6 +5,7 @@ import { scoutLoopEvaluationSchema } from "@/lib/ai/scoutloop-schemas";
 import { createFallbackEvaluation } from "@/lib/scoutloop/demo-result";
 import { gatherStartupEvidence } from "@/lib/scoutloop/evidence/brightdata";
 import { recallLessons, recordRunOutcome } from "@/lib/scoutloop/memory/mubit";
+import { saveEvaluationRun } from "@/lib/scoutloop/persistence";
 import type {
   EvidenceBundle,
   NormalizedScoutLoopInput,
@@ -164,6 +165,7 @@ export async function runScoutLoopEvaluation(
       overallScore: evaluation.overallScore,
       warnings: evaluation.warnings,
     });
+    await saveEvaluationRun(evaluation).catch(() => undefined);
 
     return evaluation;
   } catch (error) {
@@ -183,6 +185,7 @@ export async function runScoutLoopEvaluation(
       ],
     });
     evaluation.workflowEvents = completeWorkflowEvents(evaluation.warnings);
+    await saveEvaluationRun(evaluation).catch(() => undefined);
     return evaluation;
   }
 }

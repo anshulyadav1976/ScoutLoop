@@ -134,3 +134,42 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const scoutLoopRun = pgTable("ScoutLoopRun", {
+  id: uuid("id").primaryKey().notNull(),
+  mode: varchar("mode", {
+    enum: ["startup_judge", "hackathon_judge"],
+  }).notNull(),
+  url: text("url"),
+  startupName: text("startupName"),
+  evaluation: json("evaluation").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type ScoutLoopRun = InferSelectModel<typeof scoutLoopRun>;
+
+export const scoutLoopFeedback = pgTable("ScoutLoopFeedback", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  evaluationId: uuid("evaluationId").notNull(),
+  mode: varchar("mode", {
+    enum: ["startup_judge", "hackathon_judge"],
+  }).notNull(),
+  feedback: json("feedback").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type ScoutLoopFeedback = InferSelectModel<typeof scoutLoopFeedback>;
+
+export const scoutLoopLesson = pgTable("ScoutLoopLesson", {
+  id: uuid("id").primaryKey().notNull(),
+  lesson: text("lesson").notNull(),
+  source: varchar("source", {
+    enum: ["mubit", "local_fallback"],
+  }).notNull(),
+  mode: varchar("mode", {
+    enum: ["startup_judge", "hackathon_judge"],
+  }),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type ScoutLoopLesson = InferSelectModel<typeof scoutLoopLesson>;

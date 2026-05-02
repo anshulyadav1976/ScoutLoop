@@ -106,14 +106,20 @@ export function ScoutLoopApp() {
   const [evaluation, setEvaluation] = useState<ScoutLoopEvaluation | null>(
     null
   );
+  const [workflowEvents, setWorkflowEvents] = useState<WorkflowEvent[]>([]);
   const [error, setError] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState<string[]>([]);
   const [customFeedback, setCustomFeedback] = useState("");
   const [storedLesson, setStoredLesson] = useState("");
 
   const timeline = useMemo(
-    () => timelineForStatus(status, evaluation?.workflowEvents),
-    [status, evaluation?.workflowEvents]
+    () =>
+      timelineForStatus(
+        status,
+        evaluation?.workflowEvents ??
+          (workflowEvents.length ? workflowEvents : undefined)
+      ),
+    [status, evaluation?.workflowEvents, workflowEvents]
   );
 
   async function handleFiles(files: FileList | null) {
@@ -168,6 +174,7 @@ export function ScoutLoopApp() {
   async function startEvaluation(useLearnedContext = false) {
     setError("");
     setStatus("running");
+    setWorkflowEvents([]);
 
     const body = {
       url,
@@ -178,7 +185,7 @@ export function ScoutLoopApp() {
     };
 
     try {
-      const response = await fetch("/api/scoutloop/evaluate-direct", {
+      const response = await fetch("/api/scoutloop/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -190,9 +197,20 @@ export function ScoutLoopApp() {
 
       const data = (await response.json()) as {
         evaluation: ScoutLoopEvaluation;
+        runId?: string;
       };
-      setEvaluation(data.evaluation);
-      setStatus("complete");
+      if (data.evaluation) {
+        setEvaluation(data.evaluation);
+        setStatus("complete");
+        return;
+      }
+
+      if (data.runId) {
+        await watchWorkflowRun(data.runId);
+        return;
+      }
+
+      throw new Error("ScoutLoop evaluation did not return a run.");
     } catch (caught) {
       const message =
         caught instanceof Error
@@ -226,6 +244,48 @@ export function ScoutLoopApp() {
       });
       setEvaluation(fallback);
     }
+  }
+
+  async function watchWorkflowRun(runId: string) {
+    await new Promise<void>((resolve, reject) => {
+      const source = new EventSource(
+        `/api/scoutloop/workflow/readable/${runId}`
+      );
+
+      const fallbackTimer = window.setTimeout(() => {
+        source.close();
+        reject(new Error("WDK stream timed out; direct fallback can be used."));
+      }, 90_000);
+
+      source.onmessage = (event) => {
+        const payload = JSON.parse(event.data) as
+          | { type: "workflow_event"; event: WorkflowEvent }
+          | { type: "done"; evaluation: ScoutLoopEvaluation };
+
+        if (payload.type === "workflow_event") {
+          setWorkflowEvents((current) => {
+            const withoutExisting = current.filter(
+              (item) => item.id !== payload.event.id
+            );
+            return [...withoutExisting, payload.event];
+          });
+        }
+
+        if (payload.type === "done") {
+          window.clearTimeout(fallbackTimer);
+          source.close();
+          setEvaluation(payload.evaluation);
+          setStatus("complete");
+          resolve();
+        }
+      };
+
+      source.onerror = () => {
+        window.clearTimeout(fallbackTimer);
+        source.close();
+        reject(new Error("WDK stream failed; direct fallback can be used."));
+      };
+    });
   }
 
   async function submitFeedback() {

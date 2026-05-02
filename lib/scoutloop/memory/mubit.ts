@@ -1,3 +1,8 @@
+import {
+  loadMemoryLessons,
+  saveEvaluatorFeedback,
+  saveMemoryLessons,
+} from "@/lib/scoutloop/persistence";
 import type {
   EvaluatorFeedback,
   MemoryLesson,
@@ -17,7 +22,16 @@ function createLesson(text: string): MemoryLesson {
   };
 }
 
-export function recallLessons(context: MemoryRecallContext): MemoryLesson[] {
+export async function recallLessons(
+  context: MemoryRecallContext
+): Promise<MemoryLesson[]> {
+  const persistedLessons = await loadMemoryLessons(context.mode).catch(
+    () => []
+  );
+  if (persistedLessons.length) {
+    return persistedLessons;
+  }
+
   const scoped = localLessons.filter((lesson) => {
     const text = lesson.lesson.toLowerCase();
     return (
@@ -37,8 +51,10 @@ export function recordRunOutcome(_outcome: RunOutcome): void {
 export async function recordEvaluatorFeedback(
   feedback: EvaluatorFeedback
 ): Promise<MemoryLesson[]> {
-  const lessons = await reflectFeedbackIntoLessons(feedback);
+  await saveEvaluatorFeedback(feedback).catch(() => undefined);
+  const lessons = reflectFeedbackIntoLessons(feedback);
   localLessons.push(...lessons);
+  await saveMemoryLessons(lessons, feedback.mode).catch(() => undefined);
   return lessons;
 }
 
