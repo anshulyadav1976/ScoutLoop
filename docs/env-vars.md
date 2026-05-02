@@ -9,7 +9,7 @@ Create `.env.local` using `.env.example.scoutloop`.
 ```bash
 OPENAI_API_KEY=
 SCOUTLOOP_MODEL_PROVIDER=openai
-SCOUTLOOP_OPENAI_MODEL=gpt-4o-mini
+SCOUTLOOP_OPENAI_MODEL=gpt-5.4.mini
 SCOUTLOOP_MAX_OUTPUT_TOKENS=1800
 SCOUTLOOP_MODEL_TIMEOUT_MS=120000
 V0_API_KEY=
@@ -27,9 +27,23 @@ MUBIT_AGENT_ID=scoutloop
 
 Use one stable agent id for the demo so lessons persist across runs.
 
-### Bright Data
+### Evidence provider
 
-The exact variable name may depend on the MCP/server integration selected. Use this standard naming internally:
+```bash
+SCOUTLOOP_EVIDENCE_PROVIDER=openai
+```
+
+Controls which web search/scraping backend is used for evidence gathering:
+
+| Value | Behaviour |
+|-------|-----------|
+| `openai` | OpenAI Responses API + `webSearchPreview` tool. Reliable, uses your existing `OPENAI_API_KEY`. **Recommended.** |
+| `brightdata` | BrightData MCP (original). Requires `BRIGHT_DATA_API_KEY` + `BRIGHT_DATA_MCP_URL`. |
+| `auto` (default) | OpenAI if `OPENAI_API_KEY` is set, otherwise BrightData. Falls back to the other provider on failure. |
+
+When using `openai`, BrightData env vars are optional (still used as fallback if OpenAI fails and `brightdata` creds are present).
+
+### Bright Data (optional fallback)
 
 ```bash
 BRIGHT_DATA_API_KEY=

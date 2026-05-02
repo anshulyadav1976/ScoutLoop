@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createVercel } from "@ai-sdk/vercel";
 
-const defaultOpenAIModel = "gpt-4o-mini";
+const defaultOpenAIModel = "gpt-5.4-mini";
 const defaultV0Model = "v0-1.0-md";
 
 export function getScoutLoopModelProvider() {

@@ -7,7 +7,7 @@ import {
 import { buildEvaluationPrompt } from "@/lib/ai/scoutloop-prompts";
 import { scoutLoopEvaluationSchema } from "@/lib/ai/scoutloop-schemas";
 import { createFallbackEvaluation } from "@/lib/scoutloop/demo-result";
-import { gatherStartupEvidence } from "@/lib/scoutloop/evidence/brightdata";
+import { gatherStartupEvidence } from "@/lib/scoutloop/evidence";
 import { recallLessons, recordRunOutcome } from "@/lib/scoutloop/memory/mubit";
 import { saveEvaluationRun } from "@/lib/scoutloop/persistence";
 import type {
