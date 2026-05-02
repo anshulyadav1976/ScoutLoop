@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { AlertTriangle, MessageSquare, Search } from "lucide-react";
+import { MessageSquare, Search } from "lucide-react";
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { RoastReport, RoastSection } from "@/lib/scoutloop/roast";
@@ -146,9 +146,19 @@ function RoastMarker({
         {section.roast}
       </p>
       <div className="mt-4 grid gap-3 text-sm leading-relaxed sm:grid-cols-[1fr_0.8fr]">
-        <p className="text-zinc-600">{section.evidenceNote}</p>
+        <p className="text-zinc-600">
+          <span className="font-mono font-bold text-[10px] text-zinc-900 uppercase tracking-[0.22em]">
+            Actual issue
+          </span>
+          <br />
+          {section.evidenceNote}
+        </p>
         <p className="border-l-2 border-red-500 pl-3 font-medium text-zinc-800">
-          Fix: {section.fix}
+          <span className="font-mono font-bold text-[10px] text-red-600 uppercase tracking-[0.22em]">
+            What would shut me up
+          </span>
+          <br />
+          {section.fix}
         </p>
       </div>
       <div className="mt-4 flex gap-2">
@@ -280,20 +290,6 @@ export function RoastDashboard({
   return (
     <div className="overflow-hidden border border-zinc-300 bg-white text-black shadow-[0_18px_60px_rgba(0,0,0,0.08)]">
       <RoastHero evaluation={evaluation} report={report} />
-
-      {evaluation.warnings.length > 0 ? (
-        <section className="border-b border-zinc-200 bg-amber-50 px-5 py-4 text-amber-900 text-sm sm:px-10">
-          <div className="flex items-center gap-2 font-medium">
-            <AlertTriangle className="size-4" />
-            Evidence Warnings
-          </div>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
-            {evaluation.warnings.map((warning) => (
-              <li key={warning}>{warning}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       {report.sections.map((section) => (
         <RoastMarker color={accent.bar} key={section.id} section={section} />

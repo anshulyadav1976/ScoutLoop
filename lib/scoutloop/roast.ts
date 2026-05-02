@@ -59,6 +59,15 @@ const bannedRoastPhrases = [
   "company-shaped object",
   "proof of life",
   "credible if the evidence holds",
+  "investor group chat",
+  "wet napkin",
+  "scented candle",
+  "nutritional value of cardboard",
+  "boss music",
+  "risk goblins",
+  "actually cooking",
+  "spiritual warfare",
+  "fake moustache",
 ];
 
 const questionRewrites: Record<string, string> = {
@@ -93,7 +102,7 @@ export function scoreToThreatLabel(score: number): string {
   if (score < 8.5) {
     return "ANNOYINGLY VIABLE";
   }
-  return "INVESTOR GROUP CHAT EMERGENCY";
+  return "TOO REAL TO IGNORE";
 }
 
 export function scoreToThreatIntensity(
@@ -275,7 +284,7 @@ export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
 
   if (score >= 8.5) {
     return {
-      label: "INVESTOR GROUP CHAT EMERGENCY",
+      label: "TOO REAL TO IGNORE",
       roast:
         "This is not vaporware. Annoying, because I wanted to bully it properly. The company is good enough that the roast has to aim at execution instead of existence.",
     };
@@ -296,7 +305,7 @@ export function generateBrutalOverallThreat(evaluation: ScoutLoopEvaluation): {
         ? "REAL STARTUP, FAKE CERTAINTY"
         : "NOT DEAD, STILL NEEDS RECEIPTS",
       roast: hasAi
-        ? "This is not just a Notion doc wearing an AI hoodie. Unfortunately, the proof still has the muscle tone of a wet napkin."
+        ? "This is not just a Notion doc wearing an AI hoodie. Unfortunately, the proof still has the upper-body strength of a receipt printer."
         : "There is a startup in here somewhere. Right now it is buried under assumptions, missing numbers, and a pitch that wants trust before it has earned eye contact.",
     };
   }
@@ -333,7 +342,7 @@ export function generateProblemRoast(
 
   return {
     roast: regulated
-      ? "The pain is real. Enterprises see unpredictable AI agents and legal immediately starts hearing boss music. The problem is not fake; the danger is acting like 'safer agents' alone is a sales motion."
+      ? "The problem is real, which is annoying because now we have to take the pitch seriously. Regulated companies do not want autonomous agents wandering around production like unpaid interns with API keys. But 'AI needs control' is not a company yet; it is a sentence every enterprise buyer already knows."
       : hackathon
         ? "The problem is clear enough for judges to understand before the coffee wears off. The risk is that it solves a demo-day inconvenience, not a user-punching-the-wall problem."
         : score >= 7
@@ -368,7 +377,7 @@ export function generateMarketRoast(
       : broad
         ? "Big category, sure. But 'everyone building AI' is not a customer segment; it is a LinkedIn search result with delusions of grandeur."
         : score >= 7
-          ? "The market framing is less embarrassing than usual. Still, the first wedge needs to be a spear, not a scented candle labeled 'platform opportunity'."
+          ? "The market framing is less embarrassing than usual. Still, the first wedge needs to be a spear, not a slide title wearing cologne."
           : "The market slide is basically pointing at a rich neighborhood and declaring home ownership. Nice dream. Now identify the first house you can actually buy.",
     evidenceNote: compact(
       `TAM: ${evaluation.marketSizing.tamHypothesis} SAM: ${evaluation.marketSizing.samHypothesis} SOM: ${evaluation.marketSizing.somHypothesis}`,
@@ -393,7 +402,7 @@ export function generateCompetitorRoast(
       count === 0
         ? "No competitors found is not a flex. It usually means the research is wearing a blindfold or the customer is solving this with apathy and spreadsheets."
         : hasAi
-          ? "There are enough agent frameworks in this market to start a small, dysfunctional government. 'We use AI' now has the nutritional value of cardboard."
+          ? "This market is already packed with agent frameworks, cloud platforms, orchestration tools, and internal enterprise duct tape. Walking in with 'predictable AI agents' is not enough. Half the room is already saying that, and the other half has better distribution."
           : direct > 0
             ? "Competitors exist, and some of them have distribution, money, and employees whose job is to copy your cute little feature before lunch."
             : "The scariest competitor is still doing nothing. Customers love ignoring problems until a VP gets publicly embarrassed.",
@@ -450,7 +459,7 @@ export function generateDistributionRoast(
     roast: enterprise
       ? "Enterprise sales into regulated industries means procurement hell, security questionnaires, and six people named Compliance asking for a PDF no one will read. The product can be right and still die in process."
       : developerLed || vague
-        ? "Developer-first distribution can work. It can also become 'developers will find us,' which is not a strategy; it is a scented candle."
+        ? "Developer-first distribution can work. It can also become 'developers will find us,' which is not GTM; it is a bedtime story for people who do not enjoy revenue."
         : "The product makes sense. The distribution plan is where the floorboards start making horror-movie noises.",
     evidenceNote: compact(
       `Business model: ${evaluation.businessModel} Distribution: ${evaluation.distribution}`,
